@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Volleyball Scoreboard Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- manifest.json の読み込み -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- sw.js (サービスワーカー) の登録スクリプト -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('オフライン対応完了！'))
+        .catch(err => console.error('登録失敗:', err));
+    }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="score-container">
+                <div class="team-info">
+                    <input type="text" id="team-name-a" class="team-name-input" value="Team A">
+                    <div class="set-count" id="set-count-a" style="font-size: 1.2rem; color: #ffeb3b;">0</div> <!-- 追加 -->
+                    <div class="score" id="display-score-a">0</div>
+                </div>
+                <!-- Team B側も同様に -->
+                <div class="team-info">
+                    <div class="score" id="display-score-b">0</div>
+                    <div class="set-count" id="set-count-b" style="font-size: 1.2rem; color: #ffeb3b;">0</div> <!-- 追加 -->
+                    <input type="text" id="team-name-b" class="team-name-input" value="Team B">
+                </div>
+                <div class="serve-status-center">
+                    <div class="vs">VS</div>
+                    <div class="initial-serve-selector" id="toss-area">
+                        <span>初回のサーブ権：</span>
+                        <button onclick="setInitialServe('A')">A</button>
+                        <button onclick="setInitialServe('B')">B</button>
+                    </div>
+                    <div id="active-indicators" class="hidden">
+                        <div id="indicator-a" class="indicator">●</div>
+                        <div id="indicator-b" class="indicator">●</div>
+                    </div>
+                </div>
+                <div class="team-info">
+                    <div class="score" id="display-score-b">0</div>
+                    <input type="text" id="team-name-b" class="team-name-input" value="Team B">
+                </div>
+            </div>
+        </header>
+
+        <main class="court-viewport">
+            <div class="court-grid">
+                <div class="side side-a">
+                    <div class="player-layout" id="grid-a"></div>
+                </div>
+                <div class="net-line"></div>
+                <div class="side side-b">
+                    <div class="player-layout" id="grid-b"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="control-panel">
+                <div class="team-controls team-a-ui">
+                    <div class="ui-label">TEAM A</div>
+                    <div id="selected-player-display-a" class="selected-name" style="color: #ffeb3b; font-size: 0.8rem; text-align: center; height: 1.2rem;">選択: なし
+                    </div>
+                    <div class="button-section win-section">
+                        <button onclick="addPoint('A', 'スパイク')">スパイク</button>
+                        <button id="btn-serve-win-a" onclick="addPoint('A', 'サーブ')">サーブ</button>
+                        <button onclick="addPoint('A', '相手ミス')">他ミス得点</button>
+                    </div>
+                    <div class="button-section loss-section">
+                        <button onclick="addPoint('B', 'スパイクミス')">スパイクミス</button>
+                        <button id="btn-serve-err-a" onclick="addPoint('B', 'サーブミス')">サーブミス</button>
+                        <button onclick="addPoint('B', 'ミス')">他ミス失点</button>
+                    </div>
+                </div>
+
+                <div class="team-controls team-b-ui">
+                    <div class="ui-label">TEAM B</div>
+                    <div id="selected-player-display-b" class="selected-name" style="color: #ffeb3b; font-size: 0.8rem; text-align: center; height: 1.2rem;">選択: なし
+                    </div>
+                    <div class="button-section win-section">
+                        <button onclick="addPoint('B', 'スパイク')">スパイク</button>
+                        <button id="btn-serve-win-b" onclick="addPoint('B', 'サーブ')">サーブ</button>
+                        <button onclick="addPoint('B', '相手ミス')">他ミス得点</button>
+                    </div>
+                    <div class="button-section loss-section">
+                        <button onclick="addPoint('A', 'スパイクミス')">スパイクミス</button>
+                        <button id="btn-serve-err-b" onclick="addPoint('A', 'サーブミス')">サーブミス</button>
+                        <button onclick="addPoint('A', 'ミス')">他ミス失点</button>
+                    </div>
+                </div>
+            </div>
+           <!-- <footer> 内の <div class="system-bar"> の中に追加 -->
+            <div class="system-bar">
+                <button onclick="undo()" style="background:#5d4037">1点戻る</button> <!-- 追加 -->
+                <button onclick="saveData()">保存</button>
+                <button onclick="loadData()">読込</button>
+                <button onclick="resetGame()" style="background:#827717">リセット</button>
+                <button onclick="exportCSV()">CSV出力</button>
+            </div>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
