@@ -15,6 +15,7 @@ let state = {
 };
 
 function init() {
+    setupNameInputs();
     render();
 }
 
@@ -23,6 +24,40 @@ function setInitialServe(team) {
     document.getElementById('toss-area').classList.add('hidden');
     document.getElementById('active-indicators').classList.remove('hidden');
     render();
+}
+
+/**
+ * 選手名の一括設定エリア（input）を作成し、stateと連動させる
+ */
+function setupNameInputs() {
+    ['a', 'b'].forEach(id => {
+        const container = document.getElementById(`inputs-${id}`);
+        if (!container) return; // 要素がない場合はスキップ
+
+        container.innerHTML = ''; // 一旦クリア
+        
+        for (let i = 0; i < 6; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'name-edit-input';
+            input.placeholder = `P${i + 1}`;
+            
+            // 現在の名前をセット
+            input.value = (id === 'a') ? state.playersA[i] : state.playersB[i];
+
+            // 入力された瞬間に state を更新してコートに反映
+            input.oninput = (e) => {
+                if (id === 'a') {
+                    state.playersA[i] = e.target.value;
+                } else {
+                    state.playersB[i] = e.target.value;
+                }
+                // コート上の名前表示を更新するために render を呼ぶ
+                render(); 
+            };
+            container.appendChild(input);
+        }
+    });
 }
 
 function render() {
@@ -84,9 +119,7 @@ function drawSide(id, players) {
 
         box.innerHTML = `
             <span class="pos-tag">P${POS_LABELS[idx]}</span>
-            <input type="text" class="p-input" value="${players[idx]}" 
-                onclick="event.stopPropagation()"
-                onchange="updatePlayerName('${id}', ${idx}, this.value)">
+            <div class="p-name-display">${players[idx]}</div>
         `;
         grid.appendChild(box);
     });

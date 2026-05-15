@@ -9,7 +9,7 @@
 
 body {
     margin: 0; padding: 0; font-family: sans-serif;
-    background: #121212; color: white; height: 100dvh; overflow: hidden;
+    background: #121212; color: white; height: 100vh; overflow: hidden;
 }
 
 #app { display: flex; flex-direction: column; height: 100%; }
@@ -29,7 +29,12 @@ header { background: #222; padding: 1vh 2vw; border-bottom: 1px solid #444; }
 .indicator { font-size: 1.5rem; color: #333; }
 .indicator.active { color: var(--server-color); text-shadow: 0 0 10px var(--server-color); }
 
-.court-viewport { flex: 1; display: flex; justify-content: center; align-items: center; padding: 5px; }
+.court-viewport { flex: 1; 
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 10px;
+    padding: 5px; }
 .court-grid { display: flex; width: 98%; height: 90%; max-width: 1200px; }
 .side { flex: 1; background: var(--court-color); border: 2px solid var(--line-color); display: flex; padding: 1%; }
 .net-line { width: 6px; background: var(--net-color); z-index: 10; }
