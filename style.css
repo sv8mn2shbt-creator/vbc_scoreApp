@@ -183,73 +183,97 @@ footer {
 }
 
 /* ----------------------------------
-   スマホ横向き（Landscape）専用レイアウト
+   スマホ横向き（Landscape）専用：スクロールなし調整
 ---------------------------------- */
 @media (orientation: landscape) and (max-height: 500px) {
-    /* 画面全体の配置を横並びに変更 */
     #app {
         flex-direction: row;
-        overflow: hidden;
+        overflow: hidden; /* 全体を固定 */
     }
 
-    /* 左側：ヘッダーとコート */
+    /* 左側：スコアと情報（幅を少し狭める） */
     header {
-        width: 30%;
-        height: 100%;
+        width: 20%;
+        height: 100vh;
         border-right: 1px solid #444;
         border-bottom: none;
+        padding: 5px;
+        display: flex;
         flex-direction: column;
-        justify-content: flex-start;
-        padding: 10px 5px;
+        justify-content: center;
+        gap: 5px;
     }
     
-    .score-container {
-        flex-direction: column;
-        gap: 15px;
-    }
+    .score-container { flex-direction: column; gap: 5px; }
+    .team-info { flex-direction: column; align-items: center; }
+    .score { font-size: 1.2rem; line-height: 1; }
+    .team-name-input { width: 90%; font-size: 0.7rem; }
+    .indicator { width: 10px; height: 10px; margin: 2px auto; }
 
+    /* 中央：コート（比率を上げる） */
     .court-viewport {
-        width: 40%;
-        height: 100%;
-        padding: 10px;
+        width: 45%;
+        height: 100vh;
+        padding: 5px;
     }
+    .court-grid { height: 95%; max-height: 100vh; }
 
-    .court-grid {
-        max-height: 90vh; /* 横向き時は高さをたっぷり使う */
-        width: 100%;
-    }
-
-    /* 右側：操作パネル */
+    /* 右側：操作パネル（ここを徹底圧縮） */
     footer {
-        width: 30%;
-        height: 100%;
-        overflow-y: auto; /* ボタンが多い場合はスクロール可能に */
+        width: 35%;
+        height: 100vh;
         border-top: none;
-        border-left: 2px solid #444;
+        border-left: 1px solid #444;
+        padding: 2px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* 上下に振り分け */
     }
 
     .control-panel {
         flex-direction: column;
-        padding: 5px;
+        gap: 2px;
+        flex: 1;
+        justify-content: center;
     }
 
+    .team-controls { gap: 2px; }
+    .ui-label { font-size: 0.5rem; margin: 0; }
+
+    /* ボタンセクションを3列にして高さを圧縮 */
     .button-section {
-        grid-template-columns: repeat(2, 1fr); /* 横向きは2列の方が見やすい */
-        gap: 5px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 3px;
+        margin-bottom: 4px;
     }
 
     .button-section button {
-        min-height: 45px; /* 高さを少し抑える */
-        font-size: 0.8rem;
+        min-height: 32px; /* 限界まで低く */
+        font-size: 0.7rem;
+        padding: 2px;
+        box-shadow: none; /* 立体感を消してフラットに */
+        border-radius: 2px;
     }
 
+    /* システムボタンを最下部に1列で並べる */
     .system-bar {
-        grid-template-columns: repeat(2, 1fr); /* システムボタンも2列に */
-        margin-top: 10px;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
+        padding: 2px 0;
     }
 
-    /* 横向き時に邪魔な要素を微調整 */
-    .ui-label { font-size: 0.5rem; }
-    .score { font-size: 1.5rem; }
-    .team-name-input { width: 80%; }
+    .system-bar button {
+        padding: 5px 0;
+        font-size: 0.6rem;
+        min-height: 25px;
+    }
+
+    /* 選択中の選手名表示を非表示にするか、極小にする（スペース確保） */
+    #selected-player-display-a, 
+    #selected-player-display-b {
+        font-size: 0.5rem;
+        line-height: 1;
+        margin: 0;
+    }
 }
