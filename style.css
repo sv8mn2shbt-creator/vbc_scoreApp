@@ -183,7 +183,7 @@ footer {
 }
 
 /* ----------------------------------
-   スマホ横向き（Landscape）専用：名前入力とボタンの復元
+   スマホ横向き（Landscape）専用：完全連動レイアウト
 ---------------------------------- */
 @media (orientation: landscape) and (max-height: 500px) {
     #app {
@@ -191,99 +191,98 @@ footer {
         overflow: hidden;
     }
 
-    /* 左側：スコア ＋ 名前入力欄（スクロール可能にする） */
+    /* 左側：スコア情報を「上下」に分けて配置 */
     header {
-        width: 25%;
+        width: 22%;
         height: 100vh;
-        border-right: 1px solid #444;
-        border-bottom: none;
-        padding: 5px;
+        padding: 4px;
         display: flex;
         flex-direction: column;
-        overflow-y: auto; /* 名前入力が多い場合にスクロール可能に */
+        justify-content: space-around; /* 上下にチーム情報を振り分け */
+        background: #1a1a1a;
+        border-right: 2px solid #333;
     }
-    
-    .score-container { 
-        flex-direction: row; 
-        justify-content: center; 
-        gap: 10px; 
-        margin-bottom: 5px;
-    }
-    .score { font-size: 1.2rem; }
 
-    /* 名前入力欄を横向きでも見やすく調整 */
-    .player-settings { display: block; width: 100%; }
-    .settings-grid { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 2px; 
-        max-height: none; 
+    /* チームごとのスコアボックス */
+    .score-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 5px;
+        background: #222;
+        border-radius: 4px;
+        border-left: 4px solid #444;
     }
-    .team-name-input { width: 90%; font-size: 0.7rem; margin-bottom: 4px; }
-    .name-edit-input { 
-        width: 90%; 
-        font-size: 0.65rem; 
-        padding: 2px; 
-        height: 18px; 
-    }
+    /* チームA/Bで色分け（ボタンと連動） */
+    .score-container:first-child { border-left-color: #388e3c; } 
+    .score-container:last-child { border-left-color: #1976d2; }
+
+    .team-info { flex-direction: column; width: 100%; }
+    .team-name-input { width: 95%; font-size: 0.8rem; text-align: center; }
+    .score { font-size: 1.8rem; line-height: 1; margin: 2px 0; }
+    .set-count { font-size: 0.8rem !important; }
 
     /* 中央：コート */
     .court-viewport {
-        width: 40%;
+        width: 48%;
         height: 100vh;
-        padding: 2px;
+        padding: 5px;
     }
-    .court-grid { height: 98%; }
+    .court-grid { height: 95%; }
 
-    /* 右側：操作パネル（得点ボタン ＋ システムボタン） */
+    /* 右側：操作パネル（上下でチームを分離） */
     footer {
-        width: 35%;
+        width: 30%;
         height: 100vh;
-        border-top: none;
-        border-left: 1px solid #444;
-        padding: 2px;
+        padding: 4px;
         display: flex;
         flex-direction: column;
+        gap: 5px;
+        background: #111;
     }
 
-    /* 得失点ボタンエリア */
     .control-panel {
-        flex: 1; /* 余ったスペースを埋める */
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* チーム間の隙間 */
+    }
+
+    /* 各チームのボタンのまとまり */
+    .team-controls {
+        flex: 1;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 2px;
+        padding: 4px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.03);
     }
 
     .button-section {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 3px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
     }
 
     .button-section button {
-        min-height: 35px; /* 押しやすさを維持しつつ低く */
-        font-size: 0.7rem;
+        min-height: 40px;
+        font-size: 0.75rem;
     }
 
-    /* 1点戻る・CSVなどのシステムボタン（ここを見えるように調整） */
+    /* チーム別のボタン背景微調整（より分かりやすく） */
+    .team-a-ui button { border-bottom: 2px solid #2e7d32; }
+    .team-b-ui button { border-bottom: 2px solid #1565c0; }
+
+    /* システムボタン（最下部にコンパクトに） */
     .system-bar {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* 2列から3列に変更して高さを節約 */
-        gap: 2px;
-        padding: 2px;
-        background: #000;
-        border-top: 1px solid #333;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
+        border-top: 1px solid #444;
+        padding-top: 5px;
     }
+    .system-bar button { min-height: 30px; font-size: 0.6rem; }
 
-    .system-bar button {
-        padding: 4px 0;
-        font-size: 0.6rem;
-        min-height: 28px;
-        background: #444;
-    }
-
-    /* 選択中の選手表示を極小化 */
-    .selected-name { font-size: 0.5rem; margin: 0; }
-    .ui-label { display: none; } /* 「得点」「失点」のラベルを消してスペース確保 */
+    /* 非表示にする要素 */
+    .ui-label, .player-settings { display: none; } 
 }
