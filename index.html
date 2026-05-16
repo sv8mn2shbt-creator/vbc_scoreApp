@@ -45,8 +45,8 @@
             <div id="serve-selector" class="serve-init-overlay">
                 <p>最初のサーバーを選択</p>
                 <div class="serve-buttons">
-                    <button onclick="setInitialServer('A')">TEAM A</button>
-                    <button onclick="setInitialServer('B')">TEAM B</button>
+                    <button id="init-serve-a" onclick="setInitialServer('A')">TEAM A</button>
+                    <button id="init-serve-b" onclick="setInitialServer('B')">TEAM B</button>
                 </div>
             </div>
             <div class="court-grid">
@@ -59,7 +59,7 @@
         <footer>
             <div class="control-panel">
                 <div class="team-controls team-a-ui">
-                    <div class="team-label label-a">TEAM A</div>
+                    <div id="label-name-a" class="team-label label-a">TEAM A</div>
                     <div id="selected-player-display-a" class="selected-name">選択: なし</div>
                     <div class="button-section win-section">
                         <button onclick="addPoint('A', 'スパイク')">スパイク</button>
@@ -74,7 +74,7 @@
                 </div>
 
                 <div class="team-controls team-b-ui">
-                    <div class="team-label label-b">TEAM B</div>
+                    <div id="label-name-b" class="team-label label-b">TEAM B</div>
                     <div id="selected-player-display-b" class="selected-name">選択: なし</div>
                     <div class="button-section win-section">
                         <button onclick="addPoint('B', 'スパイク')">スパイク</button>

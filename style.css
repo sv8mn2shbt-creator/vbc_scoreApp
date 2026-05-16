@@ -15,7 +15,6 @@ body {
 
 #app { display: flex; flex-direction: column; height: 100%; width: 100%; }
 
-/* ヘッダー */
 header { background: #222; padding: 8px 5px; border-bottom: 1px solid #444; flex-shrink: 0; }
 .main-scoreboard { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .side-info { display: flex; align-items: center; gap: 8px; flex: 1; }
@@ -29,14 +28,12 @@ header { background: #222; padding: 8px 5px; border-bottom: 1px solid #444; flex
 .team-name-input { width: 22vw; font-size: 0.85rem; background: transparent; border: none; color: white; border-bottom: 1px solid #444; }
 .header-set-count { font-size: 1rem; color: #aaa; font-weight: bold; min-width: 25px; text-align: center; }
 
-/* ランプ */
 .indicator { 
     width: 14px; height: 14px; border-radius: 50%; background: #1a1a1a; border: 2px solid #444; 
-    flex-shrink: 0; transition: all 0.2s ease; will-change: background-color;
+    flex-shrink: 0; transition: all 0.2s ease;
 }
 .indicator.active { background: var(--accent-yellow) !important; border-color: #fff !important; box-shadow: 0 0 12px var(--accent-yellow); }
 
-/* コートエリア */
 .court-viewport { flex: 1; display: flex; position: relative; justify-content: center; align-items: center; padding: 5px; min-height: 0; }
 .court-grid { display: flex; width: 100%; height: 98%; max-height: 38vh; }
 .side { flex: 1; background: var(--court-color); border: 1px solid var(--line-color); display: flex; padding: 3px; }
@@ -54,14 +51,12 @@ header { background: #222; padding: 8px 5px; border-bottom: 1px solid #444; flex
 .player-box.server-highlight { border-color: var(--accent-yellow); background: white; }
 .p-name-display { font-weight: bold; text-align: center; width: 90%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
-/* 操作パネル */
 footer { background: #1a1a1a; border-top: 2px solid #444; padding: 6px 5px; flex-shrink: 0; }
+.team-label { font-size: 0.7rem; font-weight: bold; text-align: center; padding: 3px 0; color: #fff; border-radius: 4px 4px 0 0; }
+.label-a { background: rgb(7, 7, 164) }
+.label-b { background: rgb(133, 9, 114) }
 
-.team-label { font-size: 0.7rem; font-weight: bold; text-align: center; padding: 2px 0; border-radius: 3px 3px 0 0; color: #fff; }
-.label-a { background: rgb(8, 8, 188); border-bottom: 2px solid #a5d6a7; }
-.label-b { background: rgb(151, 8, 144); border-bottom: 2px solid #ef9a9a; }
-
-.selected-name { background: #000; color: var(--accent-yellow); font-size: 0.8rem; text-align: center; height: 1.2rem; margin-bottom: 6px; border: 1px solid #333; font-weight: bold; border-top: none; border-radius: 0 0 3px 3px; }
+.selected-name { background: #000; color: var(--accent-yellow); font-size: 0.8rem; text-align: center; height: 1.2rem; margin-bottom: 6px; border: 1px solid #333; font-weight: bold; border-top: none; border-radius: 0 0 4px 4px; }
 
 .button-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
 .button-section button {
@@ -73,7 +68,6 @@ footer { background: #1a1a1a; border-top: 2px solid #444; padding: 6px 5px; flex
 .loss-section button { background: #d32f2f; }
 
 button:disabled { opacity: 0.25; filter: grayscale(1); pointer-events: none; }
-
 .system-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 .system-bar button { background: #424242; color: #fff; border: none; padding: 10px 0; font-size: 0.7rem; border-radius: 4px; min-height: auto; box-shadow: none; }
 
@@ -84,6 +78,6 @@ button:disabled { opacity: 0.25; filter: grayscale(1); pointer-events: none; }
 .serve-buttons { display: flex; gap: 20px; margin-top: 15px; }
 .serve-buttons button { padding: 15px 30px; font-weight: bold; background: #444; color: white; border: 2px solid #666; border-radius: 10px; font-size: 1.1rem; }
 
-/* 選手名設定エリア */
+.player-settings { font-size: 0.75rem; margin-top: 5px; }
 .settings-grid { display: flex; gap: 10px; padding: 8px; max-height: 12vh; overflow-y: auto; background: #333; }
-.name-edit-input { width: 100%; margin-bottom: 3px; background: #444; color: white; border: 1px solid #555; }
+.name-edit-input { width: 100%; margin-bottom: 3px; background: #444; color: white; border: 1px solid #555; padding: 2px; }

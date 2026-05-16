@@ -2,12 +2,32 @@ const POS_LABELS = [1, 6, 5, 4, 3, 2];
 let state = {
     scoreA: 0, scoreB: 0, setA: 0, setB: 0, setRecords: [],
     servingTeam: null,
+    teamNameA: "TEAM A",
+    teamNameB: "TEAM B",
     playersA: ["A1", "A6", "A5", "A4", "A3", "A2"],
     playersB: ["B1", "B6", "B5", "B4", "B3", "B2"],
     history: [], selectedPlayersA: [], selectedPlayersB: []
 };
 
-function init() { setupNameInputs(); render(); }
+function init() { 
+    setupNameInputs(); 
+    setupTeamNameSync();
+    render(); 
+}
+
+function setupTeamNameSync() {
+    const inputA = document.getElementById('team-name-a');
+    const inputB = document.getElementById('team-name-b');
+    inputA.oninput = (e) => { state.teamNameA = e.target.value; updateTeamLabels(); };
+    inputB.oninput = (e) => { state.teamNameB = e.target.value; updateTeamLabels(); };
+}
+
+function updateTeamLabels() {
+    document.getElementById('label-name-a').innerText = state.teamNameA;
+    document.getElementById('label-name-b').innerText = state.teamNameB;
+    document.getElementById('init-serve-a').innerText = state.teamNameA;
+    document.getElementById('init-serve-b').innerText = state.teamNameB;
+}
 
 function setInitialServer(team) {
     state.servingTeam = team;
@@ -19,7 +39,6 @@ function setupNameInputs() {
         const container = document.getElementById(`inputs-${id}`);
         if (!container) return;
         container.innerHTML = '';
-        const fragment = document.createDocumentFragment();
         for (let i = 0; i < 6; i++) {
             const input = document.createElement('input');
             input.className = 'name-edit-input';
@@ -29,9 +48,8 @@ function setupNameInputs() {
                 else state.playersB[i] = e.target.value;
                 updateNamesOnly(); 
             };
-            fragment.appendChild(input);
+            container.appendChild(input);
         }
-        container.appendChild(fragment);
     });
 }
 
@@ -42,12 +60,7 @@ function updateNamesOnly() {
         if (!grid) return;
         const boxes = grid.querySelectorAll('.player-box');
         let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
-        visualOrder.forEach((playerIdx, i) => {
-            if (boxes[i]) {
-                const nameDisplay = boxes[i].querySelector('.p-name-display');
-                if (nameDisplay) nameDisplay.textContent = players[playerIdx];
-            }
-        });
+        visualOrder.forEach((pIdx, i) => { if(boxes[i]) boxes[i].querySelector('.p-name-display').textContent = players[pIdx]; });
     });
 }
 
@@ -56,7 +69,10 @@ function render() {
     document.getElementById('display-score-b').innerText = state.scoreB;
     document.getElementById('set-count-a').innerText = state.setA;
     document.getElementById('set-count-b').innerText = state.setB;
-    
+    document.getElementById('team-name-a').value = state.teamNameA;
+    document.getElementById('team-name-b').value = state.teamNameB;
+    updateTeamLabels();
+
     document.getElementById('selected-player-display-a').innerText = "選択: " + (state.selectedPlayersA.length > 0 ? state.selectedPlayersA.map(i => state.playersA[i]).join(',') : "なし");
     document.getElementById('selected-player-display-b').innerText = "選択: " + (state.selectedPlayersB.length > 0 ? state.selectedPlayersB.map(i => state.playersB[i]).join(',') : "なし");
 
@@ -66,10 +82,8 @@ function render() {
     const isStarted = state.servingTeam !== null;
     document.getElementById('serve-selector').style.display = isStarted ? 'none' : 'flex';
 
-    const isAServing = (state.servingTeam === 'A');
-    const isBServing = (state.servingTeam === 'B');
-    const isP2toP6SelectedA = state.selectedPlayersA.some(idx => idx !== 0);
-    const isP2toP6SelectedB = state.selectedPlayersB.some(idx => idx !== 0);
+    const isAServing = (state.servingTeam === 'A'), isBServing = (state.servingTeam === 'B');
+    const isP2toP6SelectedA = state.selectedPlayersA.some(idx => idx !== 0), isP2toP6SelectedB = state.selectedPlayersB.some(idx => idx !== 0);
 
     document.getElementById('btn-serve-win-a').disabled = !isAServing || isP2toP6SelectedA;
     document.getElementById('btn-serve-err-a').disabled = !isAServing || isP2toP6SelectedA;
@@ -89,7 +103,6 @@ function drawSide(id, players) {
     let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
 
     if (grid.children.length === 0) {
-        const fragment = document.createDocumentFragment();
         visualOrder.forEach((idx) => {
             const box = document.createElement('div');
             box.className = 'player-box';
@@ -100,19 +113,16 @@ function drawSide(id, players) {
                 render();
             };
             box.innerHTML = `<span class="pos-tag">P${POS_LABELS[idx]}</span><div class="p-name-display">${players[idx]}</div>`;
-            fragment.appendChild(box);
+            grid.appendChild(box);
         });
-        grid.appendChild(fragment);
     } 
-    
     const boxes = grid.children;
-    visualOrder.forEach((playerIdx, i) => {
+    visualOrder.forEach((pIdx, i) => {
         const box = boxes[i];
         if (box) {
-            box.classList.toggle('selected', selectedList.includes(playerIdx));
-            box.classList.toggle('server-highlight', state.servingTeam === id.toUpperCase() && playerIdx === 0);
-            const nameDisplay = box.querySelector('.p-name-display');
-            if (nameDisplay) nameDisplay.textContent = players[playerIdx];
+            box.classList.toggle('selected', selectedList.includes(pIdx));
+            box.classList.toggle('server-highlight', state.servingTeam === id.toUpperCase() && pIdx === 0);
+            box.querySelector('.p-name-display').textContent = players[pIdx];
         }
     });
 }
@@ -120,21 +130,16 @@ function drawSide(id, players) {
 function addPoint(winner, reason) {
     if (!state.servingTeam) return;
     const currentServer = state.servingTeam === 'A' ? state.playersA[0] : state.playersB[0];
-    
-    // 【重要】historyを除去したスナップショットでメモリを節約
     const snap = {
-        scoreA: state.scoreA, scoreB: state.scoreB,
-        setA: state.setA, setB: state.setB,
-        servingTeam: state.servingTeam,
+        scoreA: state.scoreA, scoreB: state.scoreB, setA: state.setA, setB: state.setB,
+        servingTeam: state.servingTeam, teamNameA: state.teamNameA, teamNameB: state.teamNameB,
         playersA: [...state.playersA], playersB: [...state.playersB]
     };
-
     let actor = "-";
     const isLoss = (reason.includes('ミス') && !reason.includes('相手'));
     const pTeam = isLoss ? (winner === 'A' ? 'B' : 'A') : winner;
     const pList = pTeam === 'A' ? state.selectedPlayersA : state.selectedPlayersB;
     const pNames = pTeam === 'A' ? state.playersA : state.playersB;
-    
     if (pList.length > 0) actor = pList.map(i => pNames[i]).join('/');
     else if (reason.includes('サーブ')) actor = pNames[0];
 
@@ -155,7 +160,7 @@ function checkSetEnd() {
     const limit = (state.setA + state.setB === 2) ? 15 : 25;
     if ((a >= limit || b >= limit) && Math.abs(a - b) >= 2) {
         const win = a > b ? 'A' : 'B';
-        alert(`セット終了: TEAM ${win}`);
+        alert(`セット終了: ${win === 'A' ? state.teamNameA : state.teamNameB}`);
         state.setRecords.push(`${a}-${b}`);
         if (win === 'A') state.setA++; else state.setB++;
         if (state.setA === 2 || state.setB === 2) { alert("試合終了！"); state.servingTeam = null; }
@@ -169,9 +174,8 @@ function undo() {
     if (confirm("1点戻しますか？")) {
         const last = state.history.pop();
         const s = last.snap;
-        state.scoreA = s.scoreA; state.scoreB = s.scoreB;
-        state.setA = s.setA; state.setB = s.setB;
-        state.servingTeam = s.servingTeam;
+        state.scoreA = s.scoreA; state.scoreB = s.scoreB; state.setA = s.setA; state.setB = s.setB;
+        state.servingTeam = s.servingTeam; state.teamNameA = s.teamNameA; state.teamNameB = s.teamNameB;
         state.playersA = [...s.playersA]; state.playersB = [...s.playersB];
         render();
     }
@@ -179,13 +183,13 @@ function undo() {
 
 function exportCSV() {
     let csv = "\uFEFFスコア,得点チーム,サーバー,担当,理由\n";
-    state.history.forEach(h => csv += `${h.score},${h.team},${h.server},${h.actor},${h.reason}\n`);
+    state.history.forEach(h => csv += `${h.score},${h.team === 'A' ? state.teamNameA : state.teamNameB},${h.server},${h.actor},${h.reason}\n`);
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
     a.download = "result.csv"; a.click();
 }
 
 function saveData() { localStorage.setItem('vb_v3', JSON.stringify(state)); alert("保存完了"); }
 function loadData() { const s = localStorage.getItem('vb_v3'); if(s){ Object.assign(state, JSON.parse(s)); render(); } }
-function resetGame() { if(confirm("リセットしますか？")) location.reload(); }
+function resetGame() { if(confirm("リセット？")) location.reload(); }
 
 init();
