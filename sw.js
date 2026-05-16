@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vball-score-v2';
+const CACHE_NAME = 'vball-score-v1';
 // スマホに保存（キャッシュ）するファイルの一覧
 const ASSETS = [
   './',
