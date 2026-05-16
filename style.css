@@ -181,3 +181,75 @@ footer {
         min-height: 50px;
     }
 }
+
+/* ----------------------------------
+   スマホ横向き（Landscape）専用レイアウト
+---------------------------------- */
+@media (orientation: landscape) and (max-height: 500px) {
+    /* 画面全体の配置を横並びに変更 */
+    #app {
+        flex-direction: row;
+        overflow: hidden;
+    }
+
+    /* 左側：ヘッダーとコート */
+    header {
+        width: 30%;
+        height: 100%;
+        border-right: 1px solid #444;
+        border-bottom: none;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 10px 5px;
+    }
+    
+    .score-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .court-viewport {
+        width: 40%;
+        height: 100%;
+        padding: 10px;
+    }
+
+    .court-grid {
+        max-height: 90vh; /* 横向き時は高さをたっぷり使う */
+        width: 100%;
+    }
+
+    /* 右側：操作パネル */
+    footer {
+        width: 30%;
+        height: 100%;
+        overflow-y: auto; /* ボタンが多い場合はスクロール可能に */
+        border-top: none;
+        border-left: 2px solid #444;
+    }
+
+    .control-panel {
+        flex-direction: column;
+        padding: 5px;
+    }
+
+    .button-section {
+        grid-template-columns: repeat(2, 1fr); /* 横向きは2列の方が見やすい */
+        gap: 5px;
+    }
+
+    .button-section button {
+        min-height: 45px; /* 高さを少し抑える */
+        font-size: 0.8rem;
+    }
+
+    .system-bar {
+        grid-template-columns: repeat(2, 1fr); /* システムボタンも2列に */
+        margin-top: 10px;
+    }
+
+    /* 横向き時に邪魔な要素を微調整 */
+    .ui-label { font-size: 0.5rem; }
+    .score { font-size: 1.5rem; }
+    .team-name-input { width: 80%; }
+}
