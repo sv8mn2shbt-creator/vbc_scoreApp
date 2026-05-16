@@ -25,9 +25,8 @@ function setupNameInputs() {
             input.className = 'name-edit-input';
             input.value = (id === 'a') ? state.playersA[i] : state.playersB[i];
             input.oninput = (e) => {
-                const val = e.target.value;
-                if (id === 'a') state.playersA[i] = val;
-                else state.playersB[i] = val;
+                if (id === 'a') state.playersA[i] = e.target.value;
+                else state.playersB[i] = e.target.value;
                 updateNamesOnly(); 
             };
             fragment.appendChild(input);
@@ -122,7 +121,7 @@ function addPoint(winner, reason) {
     if (!state.servingTeam) return;
     const currentServer = state.servingTeam === 'A' ? state.playersA[0] : state.playersB[0];
     
-    // 【メモリ最適化】履歴(history)を含まないスナップショットを作成
+    // 【重要】historyを除去したスナップショットでメモリを節約
     const snap = {
         scoreA: state.scoreA, scoreB: state.scoreB,
         setA: state.setA, setB: state.setB,
@@ -143,15 +142,7 @@ function addPoint(winner, reason) {
     if (winner === 'A') { state.scoreA++; if(isSideOut){ state.servingTeam='A'; rotate('A'); } }
     else { state.scoreB++; if(isSideOut){ state.servingTeam='B'; rotate('B'); } }
 
-    state.history.push({ 
-        score: `${state.scoreA}-${state.scoreB}`, 
-        team: winner, 
-        reason: reason, 
-        actor: actor, 
-        server: currentServer, 
-        snap: snap 
-    });
-
+    state.history.push({ score: `${state.scoreA}-${state.scoreB}`, team: winner, reason, actor, server: currentServer, snap: snap });
     state.selectedPlayersA = []; state.selectedPlayersB = [];
     render();
     setTimeout(checkSetEnd, 10);
@@ -175,10 +166,9 @@ function checkSetEnd() {
 
 function undo() {
     if (state.history.length === 0) return;
-    if (confirm("戻しますか？")) {
+    if (confirm("1点戻しますか？")) {
         const last = state.history.pop();
         const s = last.snap;
-        // 履歴以外の状態を復元
         state.scoreA = s.scoreA; state.scoreB = s.scoreB;
         state.setA = s.setA; state.setB = s.setB;
         state.servingTeam = s.servingTeam;
@@ -194,21 +184,8 @@ function exportCSV() {
     a.download = "result.csv"; a.click();
 }
 
-function saveData() { 
-    // 保存時もhistoryを除外するか検討が必要だが、一旦すべて保存
-    localStorage.setItem('vb_v3', JSON.stringify(state)); 
-    alert("保存しました"); 
-}
-
-function loadData() { 
-    const s = localStorage.getItem('vb_v3'); 
-    if(s){ 
-        const loaded = JSON.parse(s);
-        Object.assign(state, loaded); 
-        render(); 
-    } 
-}
-
-function resetGame() { if(confirm("リセット？")) location.reload(); }
+function saveData() { localStorage.setItem('vb_v3', JSON.stringify(state)); alert("保存完了"); }
+function loadData() { const s = localStorage.getItem('vb_v3'); if(s){ Object.assign(state, JSON.parse(s)); render(); } }
+function resetGame() { if(confirm("リセットしますか？")) location.reload(); }
 
 init();
