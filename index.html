@@ -6,109 +6,92 @@
     <title>Volleyball Scoreboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="./manifest.json">
-    <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('オフライン対応完了！'))
-        .catch(err => console.error('登録失敗:', err));
-    }
-    </script>
 </head>
 <body>
     <div id="app">
         <header>
-            <div class="score-container" id="container-a">
-                <div class="team-info">
+            <div class="main-scoreboard">
+                <div class="side-info team-a-side">
                     <input type="text" id="team-name-a" class="team-name-input" value="TEAM A">
-                    <div id="indicatorA" class="indicator"></div> 
+                    <span class="header-set-count">(<span id="set-count-a">0</span>)</span>
                 </div>
-                <div class="score">
-                    <span id="display-score-a">0</span>
-                    <span class="set-count">(<span id="set-count-a">0</span>)</span>
-                </div>
-            </div>
 
-            <div class="score-container" id="container-b">
-                <div class="team-info">
-                    <input type="text" id="team-name-b" class="team-name-input" value="TEAM B">
+                <div class="center-score-area">
+                    <div id="indicatorA" class="indicator"></div>
+                    <div class="center-score">
+                        <span id="display-score-a">0</span>
+                        <span class="score-divider">-</span>
+                        <span id="display-score-b">0</span>
+                    </div>
                     <div id="indicatorB" class="indicator"></div>
                 </div>
-                <div class="score">
-                    <span id="display-score-b">0</span>
-                    <span class="set-count">(<span id="set-count-b">0</span>)</span>
+
+                <div class="side-info team-b-side">
+                    <span class="header-set-count">(<span id="set-count-b">0</span>)</span>
+                    <input type="text" id="team-name-b" class="team-name-input" value="TEAM B">
                 </div>
             </div>
 
             <details class="player-settings">
-                <summary>選手名を設定する</summary>
+                <summary>選手名設定</summary>
                 <div class="settings-grid">
-                    <div class="team-settings">
-                        <h4>TEAM A</h4>
-                        <div id="inputs-a" class="inputs-container"></div>
-                    </div>
-                    <div class="team-settings">
-                        <h4>TEAM B</h4>
-                        <div id="inputs-b" class="inputs-container"></div>
-                    </div>
+                    <div class="team-settings"><h4>TEAM A</h4><div id="inputs-a"></div></div>
+                    <div class="team-settings"><h4>TEAM B</h4><div id="inputs-b"></div></div>
                 </div>
             </details>
         </header>
 
         <main class="court-viewport">
             <div id="serve-selector" class="serve-init-overlay">
-                <p>最初のサーバーを選択してください</p>
-                <button onclick="setInitialServer('A')">TEAM A</button>
-                <button onclick="setInitialServer('B')">TEAM B</button>
+                <p>最初のサーバーを選択</p>
+                <div class="serve-buttons">
+                    <button onclick="setInitialServer('A')">TEAM A</button>
+                    <button onclick="setInitialServer('B')">TEAM B</button>
+                </div>
             </div>
             <div class="court-grid">
-                <div class="side side-a">
-                    <div class="player-layout" id="grid-a"></div>
-                </div>
+                <div class="side side-a"><div class="player-layout" id="grid-a"></div></div>
                 <div class="net-line"></div>
-                <div class="side side-b">
-                    <div class="player-layout" id="grid-b"></div>
-                </div>
+                <div class="side side-b"><div class="player-layout" id="grid-b"></div></div>
             </div>
         </main>
 
         <footer>
             <div class="control-panel">
                 <div class="team-controls team-a-ui">
-                    <div class="ui-label">TEAM A</div>
                     <div id="selected-player-display-a" class="selected-name">選択: なし</div>
                     <div class="button-section win-section">
                         <button onclick="addPoint('A', 'スパイク')">スパイク</button>
                         <button id="btn-serve-win-a" onclick="addPoint('A', 'サーブ')">サーブ</button>
-                        <button onclick="addPoint('A', '相手ミス')">他ミス得点</button>
+                        <button onclick="addPoint('A', '相手ミス')">他得点</button>
                     </div>
                     <div class="button-section loss-section">
                         <button onclick="addPoint('B', 'スパイクミス')">スパイクミス</button>
                         <button id="btn-serve-err-a" onclick="addPoint('B', 'サーブミス')">サーブミス</button>
-                        <button onclick="addPoint('B', 'ミス')">他ミス失点</button>
+                        <button onclick="addPoint('B', 'ミス')">他失点</button>
                     </div>
                 </div>
 
                 <div class="team-controls team-b-ui">
-                    <div class="ui-label">TEAM B</div>
                     <div id="selected-player-display-b" class="selected-name">選択: なし</div>
                     <div class="button-section win-section">
                         <button onclick="addPoint('B', 'スパイク')">スパイク</button>
                         <button id="btn-serve-win-b" onclick="addPoint('B', 'サーブ')">サーブ</button>
-                        <button onclick="addPoint('B', '相手ミス')">他ミス得点</button>
+                        <button onclick="addPoint('B', '相手ミス')">他得点</button>
                     </div>
                     <div class="button-section loss-section">
                         <button onclick="addPoint('A', 'スパイクミス')">スパイクミス</button>
                         <button id="btn-serve-err-b" onclick="addPoint('A', 'サーブミス')">サーブミス</button>
-                        <button onclick="addPoint('A', 'ミス')">他ミス失点</button>
+                        <button onclick="addPoint('A', 'ミス')">他失点</button>
                     </div>
                 </div>
             </div>
             <div class="system-bar">
-                <button onclick="undo()" style="background:#5d4037">1点戻る</button>
+                <button onclick="undo()">戻る</button>
                 <button onclick="saveData()">保存</button>
                 <button onclick="loadData()">読込</button>
-                <button onclick="resetGame()" style="background:#827717">リセット</button>
-                <button onclick="exportCSV()">CSV出力</button>
+                <button onclick="resetGame()">リセット</button>
+                <button onclick="exportCSV()">CSV</button>
             </div>
         </footer>
     </div>

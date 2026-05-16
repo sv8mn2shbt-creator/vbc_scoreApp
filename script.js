@@ -1,26 +1,16 @@
 const POS_LABELS = [1, 6, 5, 4, 3, 2];
-
 let state = {
-    scoreA: 0, scoreB: 0,
-    setA: 0, setB: 0,
-    setRecords: [],
+    scoreA: 0, scoreB: 0, setA: 0, setB: 0, setRecords: [],
     servingTeam: null,
     playersA: ["A1", "A6", "A5", "A4", "A3", "A2"],
     playersB: ["B1", "B6", "B5", "B4", "B3", "B2"],
-    history: [],
-    selectedPlayersA: [],
-    selectedPlayersB: []
+    history: [], selectedPlayersA: [], selectedPlayersB: []
 };
 
-function init() {
-    setupNameInputs();
-    render();
-}
+function init() { setupNameInputs(); render(); }
 
 function setInitialServer(team) {
     state.servingTeam = team;
-    const selector = document.getElementById('serve-selector');
-    if (selector) selector.style.display = 'none';
     render();
 }
 
@@ -29,46 +19,56 @@ function setupNameInputs() {
         const container = document.getElementById(`inputs-${id}`);
         if (!container) return;
         container.innerHTML = '';
+        const fragment = document.createDocumentFragment();
         for (let i = 0; i < 6; i++) {
             const input = document.createElement('input');
-            input.type = 'text';
             input.className = 'name-edit-input';
             input.value = (id === 'a') ? state.playersA[i] : state.playersB[i];
             input.oninput = (e) => {
-                if (id === 'a') state.playersA[i] = e.target.value;
-                else state.playersB[i] = e.target.value;
-                render(); 
+                const val = e.target.value;
+                if (id === 'a') state.playersA[i] = val;
+                else state.playersB[i] = val;
+                updateNamesOnly(); 
             };
-            container.appendChild(input);
+            fragment.appendChild(input);
         }
+        container.appendChild(fragment);
+    });
+}
+
+function updateNamesOnly() {
+    ['a', 'b'].forEach(id => {
+        const players = (id === 'a') ? state.playersA : state.playersB;
+        const grid = document.getElementById(`grid-${id}`);
+        if (!grid) return;
+        const boxes = grid.querySelectorAll('.player-box');
+        let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
+        visualOrder.forEach((playerIdx, i) => {
+            if (boxes[i]) {
+                const nameDisplay = boxes[i].querySelector('.p-name-display');
+                if (nameDisplay) nameDisplay.textContent = players[playerIdx];
+            }
+        });
     });
 }
 
 function render() {
-    document.getElementById('display-score-a').textContent = state.scoreA;
-    document.getElementById('display-score-b').textContent = state.scoreB;
-    document.getElementById('set-count-a').textContent = state.setA;
-    document.getElementById('set-count-b').textContent = state.setB;
+    document.getElementById('display-score-a').innerText = state.scoreA;
+    document.getElementById('display-score-b').innerText = state.scoreB;
+    document.getElementById('set-count-a').innerText = state.setA;
+    document.getElementById('set-count-b').innerText = state.setB;
     
-    const namesA = state.selectedPlayersA.length > 0 
-        ? state.selectedPlayersA.map(idx => state.playersA[idx]).join(', ') : "なし";
-    const namesB = state.selectedPlayersB.length > 0 
-        ? state.selectedPlayersB.map(idx => state.playersB[idx]).join(', ') : "なし";
-    
-    document.getElementById('selected-player-display-a').textContent = `選択: ${namesA}`;
-    document.getElementById('selected-player-display-b').textContent = `選択: ${namesB}`;
+    document.getElementById('selected-player-display-a').innerText = "選択: " + (state.selectedPlayersA.length > 0 ? state.selectedPlayersA.map(i => state.playersA[i]).join(',') : "なし");
+    document.getElementById('selected-player-display-b').innerText = "選択: " + (state.selectedPlayersB.length > 0 ? state.selectedPlayersB.map(i => state.playersB[i]).join(',') : "なし");
 
-    const indA = document.getElementById('indicatorA');
-    const indB = document.getElementById('indicatorB');
-    if (indA && indB) {
-        indA.classList.toggle('active', state.servingTeam === 'A');
-        indB.classList.toggle('active', state.servingTeam === 'B');
-    }
+    document.getElementById('indicatorA').classList.toggle('active', state.servingTeam === 'A');
+    document.getElementById('indicatorB').classList.toggle('active', state.servingTeam === 'B');
 
     const isStarted = state.servingTeam !== null;
+    document.getElementById('serve-selector').style.display = isStarted ? 'none' : 'flex';
+
     const isAServing = (state.servingTeam === 'A');
     const isBServing = (state.servingTeam === 'B');
-
     const isP2toP6SelectedA = state.selectedPlayersA.some(idx => idx !== 0);
     const isP2toP6SelectedB = state.selectedPlayersB.some(idx => idx !== 0);
 
@@ -86,63 +86,70 @@ function render() {
 function drawSide(id, players) {
     const grid = document.getElementById(`grid-${id}`);
     if (!grid) return;
-    while (grid.firstChild) { grid.removeChild(grid.firstChild); }
-
-    let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
     const selectedList = (id === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
-    const fragment = document.createDocumentFragment();
+    let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
 
-    visualOrder.forEach((idx) => {
-        const box = document.createElement('div');
-        box.className = 'player-box';
-        if (selectedList.includes(idx)) box.classList.add('selected');
-        if (state.servingTeam === id.toUpperCase() && idx === 0) box.classList.add('server-highlight');
-        box.onclick = () => selectPlayer(id, idx);
-        box.innerHTML = `<span class="pos-tag">P${POS_LABELS[idx]}</span><div class="p-name-display">${players[idx]}</div>`;
-        fragment.appendChild(box);
+    if (grid.children.length === 0) {
+        const fragment = document.createDocumentFragment();
+        visualOrder.forEach((idx) => {
+            const box = document.createElement('div');
+            box.className = 'player-box';
+            box.onclick = () => {
+                let list = (id === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
+                const fIdx = list.indexOf(idx);
+                if (fIdx > -1) list.splice(fIdx, 1); else list.push(idx);
+                render();
+            };
+            box.innerHTML = `<span class="pos-tag">P${POS_LABELS[idx]}</span><div class="p-name-display">${players[idx]}</div>`;
+            fragment.appendChild(box);
+        });
+        grid.appendChild(fragment);
+    } 
+    
+    const boxes = grid.children;
+    visualOrder.forEach((playerIdx, i) => {
+        const box = boxes[i];
+        if (box) {
+            box.classList.toggle('selected', selectedList.includes(playerIdx));
+            box.classList.toggle('server-highlight', state.servingTeam === id.toUpperCase() && playerIdx === 0);
+            const nameDisplay = box.querySelector('.p-name-display');
+            if (nameDisplay) nameDisplay.textContent = players[playerIdx];
+        }
     });
-    grid.appendChild(fragment);
-}
-
-function selectPlayer(team, idx) {
-    let list = (team === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
-    const foundIdx = list.indexOf(idx);
-    if (foundIdx > -1) list.splice(foundIdx, 1);
-    else list.push(idx);
-    render();
 }
 
 function addPoint(winner, reason) {
     if (!state.servingTeam) return;
-
-    const currentServerName = state.servingTeam === 'A' ? state.playersA[0] : state.playersB[0];
-    let actorNames = [];
-    const isLossButton = (reason.includes('ミス') && !reason.includes('相手'));
-    const pressedTeam = isLossButton ? (winner === 'A' ? 'B' : 'A') : winner;
-
-    if (pressedTeam === 'A') {
-        actorNames = state.selectedPlayersA.length > 0 ? state.selectedPlayersA.map(idx => state.playersA[idx]) : (reason.includes('サーブ') ? [state.playersA[0]] : []);
-    } else {
-        actorNames = state.selectedPlayersB.length > 0 ? state.selectedPlayersB.map(idx => state.playersB[idx]) : (reason.includes('サーブ') ? [state.playersB[0]] : []);
-    }
-
-    const prevStateSnap = {
-        scoreA: state.scoreA, scoreB: state.scoreB, setA: state.setA, setB: state.setB,
-        servingTeam: state.servingTeam, playersA: [...state.playersA], playersB: [...state.playersB]
+    const currentServer = state.servingTeam === 'A' ? state.playersA[0] : state.playersB[0];
+    
+    // 【メモリ最適化】履歴(history)を含まないスナップショットを作成
+    const snap = {
+        scoreA: state.scoreA, scoreB: state.scoreB,
+        setA: state.setA, setB: state.setB,
+        servingTeam: state.servingTeam,
+        playersA: [...state.playersA], playersB: [...state.playersB]
     };
 
-    const isSideOut = (state.servingTeam !== winner);
-    if (winner === 'A') {
-        state.scoreA++;
-        if (isSideOut) { state.servingTeam = 'A'; rotate('A'); }
-    } else {
-        state.scoreB++;
-        if (isSideOut) { state.servingTeam = 'B'; rotate('B'); }
-    }
+    let actor = "-";
+    const isLoss = (reason.includes('ミス') && !reason.includes('相手'));
+    const pTeam = isLoss ? (winner === 'A' ? 'B' : 'A') : winner;
+    const pList = pTeam === 'A' ? state.selectedPlayersA : state.selectedPlayersB;
+    const pNames = pTeam === 'A' ? state.playersA : state.playersB;
+    
+    if (pList.length > 0) actor = pList.map(i => pNames[i]).join('/');
+    else if (reason.includes('サーブ')) actor = pNames[0];
 
-    state.history.push({
-        score: `${state.scoreA}-${state.scoreB}`, team: winner, reason: reason,
-        actor: actorNames.length > 0 ? actorNames.join('/') : "-", server: currentServerName, snap: prevStateSnap
+    const isSideOut = (state.servingTeam !== winner);
+    if (winner === 'A') { state.scoreA++; if(isSideOut){ state.servingTeam='A'; rotate('A'); } }
+    else { state.scoreB++; if(isSideOut){ state.servingTeam='B'; rotate('B'); } }
+
+    state.history.push({ 
+        score: `${state.scoreA}-${state.scoreB}`, 
+        team: winner, 
+        reason: reason, 
+        actor: actor, 
+        server: currentServer, 
+        snap: snap 
     });
 
     state.selectedPlayersA = []; state.selectedPlayersB = [];
@@ -150,75 +157,58 @@ function addPoint(winner, reason) {
     setTimeout(checkSetEnd, 10);
 }
 
-function rotate(team) {
-    const p = (team === 'A') ? state.playersA : state.playersB;
-    if (p.length > 0) p.unshift(p.pop());
-}
+function rotate(t) { const p = (t === 'A') ? state.playersA : state.playersB; p.unshift(p.pop()); }
 
 function checkSetEnd() {
-    const a = state.scoreA; const b = state.scoreB;
+    const a = state.scoreA, b = state.scoreB;
     const limit = (state.setA + state.setB === 2) ? 15 : 25;
-
     if ((a >= limit || b >= limit) && Math.abs(a - b) >= 2) {
-        const setWinner = a > b ? 'A' : 'B';
-        alert(`TEAM ${setWinner} が第 ${state.setA + state.setB + 1} セットを獲得！`);
+        const win = a > b ? 'A' : 'B';
+        alert(`セット終了: TEAM ${win}`);
         state.setRecords.push(`${a}-${b}`);
-        if (setWinner === 'A') state.setA++; else state.setB++;
-
-        if (state.setA === 2 || state.setB === 2) {
-            alert(`試合終了！ TEAM ${state.setA === 2 ? 'A' : 'B'} の勝利です！`);
-            state.servingTeam = null; render(); return;
-        }
-
-        state.scoreA = 0; state.scoreB = 0; state.servingTeam = null;
-        document.getElementById('serve-selector').style.display = 'block';
+        if (win === 'A') state.setA++; else state.setB++;
+        if (state.setA === 2 || state.setB === 2) { alert("試合終了！"); state.servingTeam = null; }
+        else { state.scoreA = 0; state.scoreB = 0; state.servingTeam = null; }
         render();
     }
 }
 
 function undo() {
     if (state.history.length === 0) return;
-    if (confirm("1点戻しますか？")) {
+    if (confirm("戻しますか？")) {
         const last = state.history.pop();
-        const prev = last.snap;
-        state.scoreA = prev.scoreA; state.scoreB = prev.scoreB;
-        state.setA = prev.setA; state.setB = prev.setB;
-        state.servingTeam = prev.servingTeam;
-        state.playersA = [...prev.playersA]; state.playersB = [...prev.playersB];
-        if (state.servingTeam === null) document.getElementById('serve-selector').style.display = 'block';
+        const s = last.snap;
+        // 履歴以外の状態を復元
+        state.scoreA = s.scoreA; state.scoreB = s.scoreB;
+        state.setA = s.setA; state.setB = s.setB;
+        state.servingTeam = s.servingTeam;
+        state.playersA = [...s.playersA]; state.playersB = [...s.playersB];
         render();
     }
 }
 
 function exportCSV() {
-    const teamA = document.getElementById('team-name-a').value || "Team A";
-    const teamB = document.getElementById('team-name-b').value || "Team B";
-    let csv = "\uFEFFスコア,得点チーム,サーバー,担当選手,理由\n";
-    state.history.forEach(h => {
-        csv += `${h.score},${h.team === 'A' ? teamA : teamB},${h.server},${h.actor},${h.reason}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `結果_${teamA}_vs_${teamB}.csv`;
-    a.click();
+    let csv = "\uFEFFスコア,得点チーム,サーバー,担当,理由\n";
+    state.history.forEach(h => csv += `${h.score},${h.team},${h.server},${h.actor},${h.reason}\n`);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = "result.csv"; a.click();
 }
 
-function saveData() {
-    localStorage.setItem('vb_score_state', JSON.stringify(state));
-    alert("保存しました");
+function saveData() { 
+    // 保存時もhistoryを除外するか検討が必要だが、一旦すべて保存
+    localStorage.setItem('vb_v3', JSON.stringify(state)); 
+    alert("保存しました"); 
 }
 
-function loadData() {
-    const saved = localStorage.getItem('vb_score_state');
-    if (saved) {
-        Object.assign(state, JSON.parse(saved));
-        if (state.servingTeam) document.getElementById('serve-selector').style.display = 'none';
-        render();
-        alert("読み込みました");
-    }
+function loadData() { 
+    const s = localStorage.getItem('vb_v3'); 
+    if(s){ 
+        const loaded = JSON.parse(s);
+        Object.assign(state, loaded); 
+        render(); 
+    } 
 }
 
-function resetGame() { if(confirm("リセットしますか？")) location.reload(); }
+function resetGame() { if(confirm("リセット？")) location.reload(); }
 
 init();
