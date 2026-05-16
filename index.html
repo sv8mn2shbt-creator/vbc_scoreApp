@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Volleyball Scoreboard Pro</title>
+    <title>Volleyball Scoreboard</title>
     <link rel="stylesheet" href="style.css">
     <!-- manifest.json の読み込み -->
     <link rel="manifest" href="./manifest.json">
@@ -26,26 +26,21 @@
                     <div class="set-count" id="set-count-a" style="font-size: 1.2rem; color: #ffeb3b;">0</div> <!-- 追加 -->
                     <div class="score" id="display-score-a">0</div>
                 </div>
+                <div class="serve-center-area">
+                    <div id="indicatorA" class="indicator"></div>
+                    <div id="indicatorB" class="indicator"></div>
+                    <div id="serve-selector" class="serve-init-box">
+                        <p style="font-size: 10px; margin-bottom: 5px;">初サーブ権</p>
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="setInitialServer('A')" class="mini-btn">A</button>
+                            <button onclick="setInitialServer('B')" class="mini-btn">B</button>
+                        </div>
+                    </div>
+                </div>                
                 <!-- Team B側も同様に -->
                 <div class="team-info">
                     <div class="score" id="display-score-b">0</div>
                     <div class="set-count" id="set-count-b" style="font-size: 1.2rem; color: #ffeb3b;">0</div> <!-- 追加 -->
-                    <input type="text" id="team-name-b" class="team-name-input" value="Team B">
-                </div>
-                <div class="serve-status-center">
-                    <div class="vs">VS</div>
-                    <div class="initial-serve-selector" id="toss-area">
-                        <span>初回のサーブ権：</span>
-                        <button onclick="setInitialServe('A')">A</button>
-                        <button onclick="setInitialServe('B')">B</button>
-                    </div>
-                    <div id="active-indicators" class="hidden">
-                        <div id="indicator-a" class="indicator">●</div>
-                        <div id="indicator-b" class="indicator">●</div>
-                    </div>
-                </div>
-                <div class="team-info">
-                    <div class="score" id="display-score-b">0</div>
                     <input type="text" id="team-name-b" class="team-name-input" value="Team B">
                 </div>
             </div>

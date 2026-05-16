@@ -1,17 +1,15 @@
 const POS_LABELS = [1, 6, 5, 4, 3, 2];
 
 let state = {
-    scoreA: 0,
-    scoreB: 0,
-    setA: 0,
-    setB: 0,
+    scoreA: 0, scoreB: 0,
+    setA: 0, setB: 0,
     setRecords: [],
     servingTeam: null,
     playersA: ["A1", "A6", "A5", "A4", "A3", "A2"],
     playersB: ["B1", "B6", "B5", "B4", "B3", "B2"],
     history: [],
-    selectedPlayerA: null,
-    selectedPlayerB: null
+    selectedPlayersA: [],
+    selectedPlayersB: []
 };
 
 function init() {
@@ -19,40 +17,26 @@ function init() {
     render();
 }
 
-function setInitialServe(team) {
+function setInitialServer(team) {
     state.servingTeam = team;
-    document.getElementById('toss-area').classList.add('hidden');
-    document.getElementById('active-indicators').classList.remove('hidden');
+    const selector = document.getElementById('serve-selector');
+    if (selector) selector.style.display = 'none';
     render();
 }
 
-/**
- * 選手名の一括設定エリア（input）を作成し、stateと連動させる
- */
 function setupNameInputs() {
     ['a', 'b'].forEach(id => {
         const container = document.getElementById(`inputs-${id}`);
-        if (!container) return; // 要素がない場合はスキップ
-
-        container.innerHTML = ''; // 一旦クリア
-        
+        if (!container) return;
+        container.innerHTML = '';
         for (let i = 0; i < 6; i++) {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'name-edit-input';
-            input.placeholder = `P${i + 1}`;
-            
-            // 現在の名前をセット
             input.value = (id === 'a') ? state.playersA[i] : state.playersB[i];
-
-            // 入力された瞬間に state を更新してコートに反映
             input.oninput = (e) => {
-                if (id === 'a') {
-                    state.playersA[i] = e.target.value;
-                } else {
-                    state.playersB[i] = e.target.value;
-                }
-                // コート上の名前表示を更新するために render を呼ぶ
+                if (id === 'a') state.playersA[i] = e.target.value;
+                else state.playersB[i] = e.target.value;
                 render(); 
             };
             container.appendChild(input);
@@ -60,41 +44,49 @@ function setupNameInputs() {
     });
 }
 
+/**
+ * 描画処理の最適化
+ * innerHTMLを使いつつ、不要なイベントの重複を防ぐ
+ */
 function render() {
-    document.getElementById('display-score-a').innerText = state.scoreA;
-    document.getElementById('display-score-b').innerText = state.scoreB;
-    document.getElementById('set-count-a').innerText = state.setA;
-    document.getElementById('set-count-b').innerText = state.setB;
+    // スコア表示
+    document.getElementById('display-score-a').textContent = state.scoreA;
+    document.getElementById('display-score-b').textContent = state.scoreB;
+    document.getElementById('set-count-a').textContent = state.setA;
+    document.getElementById('set-count-b').textContent = state.setB;
     
-    const nameA = state.selectedPlayerA !== null ? state.playersA[state.selectedPlayerA] : "なし";
-    const nameB = state.selectedPlayerB !== null ? state.playersB[state.selectedPlayerB] : "なし";
-    document.getElementById('selected-player-display-a').innerText = `選択: ${nameA}`;
-    document.getElementById('selected-player-display-b').innerText = `選択: ${nameB}`;
+    const namesA = state.selectedPlayersA.length > 0 
+        ? state.selectedPlayersA.map(idx => state.playersA[idx]).join(', ') : "なし";
+    const namesB = state.selectedPlayersB.length > 0 
+        ? state.selectedPlayersB.map(idx => state.playersB[idx]).join(', ') : "なし";
+    
+    document.getElementById('selected-player-display-a').textContent = `選択: ${namesA}`;
+    document.getElementById('selected-player-display-b').textContent = `選択: ${namesB}`;
+
+    const indA = document.getElementById('indicatorA');
+    const indB = document.getElementById('indicatorB');
+    if (indA && indB) {
+        indA.classList.toggle('active', state.servingTeam === 'A');
+        indB.classList.toggle('active', state.servingTeam === 'B');
+    }
 
     const isStarted = state.servingTeam !== null;
-    if (isStarted) {
-        document.getElementById('indicator-a').classList.toggle('active', state.servingTeam === 'A');
-        document.getElementById('indicator-b').classList.toggle('active', state.servingTeam === 'B');
-    }
+    const isAServing = (state.servingTeam === 'A');
+    const isBServing = (state.servingTeam === 'B');
 
-    const isA = (state.servingTeam === 'A');
-    const isB = (state.servingTeam === 'B');
+    const isP2toP6SelectedA = state.selectedPlayersA.some(idx => idx !== 0);
+    const isP2toP6SelectedB = state.selectedPlayersB.some(idx => idx !== 0);
 
-    const isNotServerA = (state.selectedPlayerA !== null && state.selectedPlayerA !== 0);
-    const isNotServerB = (state.selectedPlayerB !== null && state.selectedPlayerB !== 0);
+    // サーブ系ボタンの制御
+    document.getElementById('btn-serve-win-a').disabled = !isAServing || isP2toP6SelectedA;
+    document.getElementById('btn-serve-err-a').disabled = !isAServing || isP2toP6SelectedA;
+    document.getElementById('btn-serve-win-b').disabled = !isBServing || isP2toP6SelectedB;
+    document.getElementById('btn-serve-err-b').disabled = !isBServing || isP2toP6SelectedB;
 
-    const buttons = document.querySelectorAll('.button-section button');
-    buttons.forEach(btn => btn.disabled = !isStarted);
+    const otherButtons = document.querySelectorAll('.button-section button:not([id*="serve"])');
+    otherButtons.forEach(btn => btn.disabled = !isStarted);
 
-    if (isStarted) {
-        const isA = (state.servingTeam === 'A');
-        const isB = (state.servingTeam === 'B');
-        document.getElementById('btn-serve-win-a').disabled = !isA || isNotServerA;
-        document.getElementById('btn-serve-err-a').disabled = !isA || isNotServerA;
-        document.getElementById('btn-serve-win-b').disabled = !isB || isNotServerB;
-        document.getElementById('btn-serve-err-b').disabled = !isB || isNotServerB;
-    }
-
+    // コート描画
     drawSide('a', state.playersA);
     drawSide('b', state.playersB);
 }
@@ -102,126 +94,166 @@ function render() {
 function drawSide(id, players) {
     const grid = document.getElementById(`grid-${id}`);
     if (!grid) return;
-    grid.innerHTML = '';
+    
+    // 軽量化：一度全ての要素を削除（GCを促す）
+    while (grid.firstChild) { grid.removeChild(grid.firstChild); }
 
     let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
+    const selectedList = (id === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
+
+    // ドキュメントフラグメントを使用してDOM操作の負荷を軽減
+    const fragment = document.createDocumentFragment();
 
     visualOrder.forEach((idx) => {
         const box = document.createElement('div');
         box.className = 'player-box';
-        box.onclick = () => selectPlayer(id, idx);
-        if ((id === 'a' && state.selectedPlayerA === idx) || (id === 'b' && state.selectedPlayerB === idx)) {
-            box.classList.add('selected');
-        }
-        if (state.servingTeam === id.toUpperCase() && idx === 0) {
-            box.classList.add('server-highlight');
-        }
+        
+        if (selectedList.includes(idx)) box.classList.add('selected');
+        if (state.servingTeam === id.toUpperCase() && idx === 0) box.classList.add('server-highlight');
 
+        // イベントリスナーの直接指定（メモリリーク防止）
+        box.onclick = () => selectPlayer(id, idx);
+        
         box.innerHTML = `
             <span class="pos-tag">P${POS_LABELS[idx]}</span>
             <div class="p-name-display">${players[idx]}</div>
         `;
-        grid.appendChild(box);
+        fragment.appendChild(box);
     });
+    grid.appendChild(fragment);
 }
 
 function selectPlayer(team, idx) {
-    if (team === 'a') {
-        state.selectedPlayerA = (state.selectedPlayerA === idx) ? null : idx;
+    let list = (team === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
+    const foundIdx = list.indexOf(idx);
+    if (foundIdx > -1) {
+        list.splice(foundIdx, 1);
     } else {
-        state.selectedPlayerB = (state.selectedPlayerB === idx) ? null : idx;
+        list.push(idx);
     }
     render();
 }
 
-function updatePlayerName(team, idx, val) {
-    if (team === 'a') state.playersA[idx] = val;
-    else state.playersB[idx] = val;
-}
-
 function addPoint(winner, reason) {
-    // 1. 誰がプレイしたか(プレイヤー名)を安全に取得
-    let actorName = "-";
-    
-    // 得点・失点ボタンが押された側のチームを判定
-    // 「相手ミス」「サーブミス」のボタンが押された場合は、得点チーム(winner)とは「逆のチーム」のプレイヤーを見る
-    const isLossButton = (reason === '相手ミス' || reason === 'サーブミス');
+    if (!state.servingTeam) return;
+
+    let actorNames = [];
+    const isLossButton = (reason.includes('ミス') && !reason.includes('相手'));
     const pressedTeam = isLossButton ? (winner === 'A' ? 'B' : 'A') : winner;
 
-    if (pressedTeam === 'A' && state.selectedPlayerA !== null) {
-        actorName = state.playersA[state.selectedPlayerA] || "-";
-    } else if (pressedTeam === 'B' && state.selectedPlayerB !== null) {
-        actorName = state.playersB[state.selectedPlayerB] || "-";
+    if (pressedTeam === 'A') {
+        actorNames = state.selectedPlayersA.length > 0 ? state.selectedPlayersA.map(idx => state.playersA[idx]) : (reason.includes('サーブ') ? [state.playersA[0]] : []);
+    } else {
+        actorNames = state.selectedPlayersB.length > 0 ? state.selectedPlayersB.map(idx => state.playersB[idx]) : (reason.includes('サーブ') ? [state.playersB[0]] : []);
     }
 
-    // 2. スナップショットを正確にコピー（ローテーション前の状態を保存）
-    const prevState = {
-        scoreA: state.scoreA,
-        scoreB: state.scoreB,
-        setA: state.setA,
-        setB: state.setB,
+    const actorDisplay = actorNames.length > 0 ? actorNames.join('/') : "-";
+
+    // 【軽量化】重いJSON.stringifyを避け、必要な値だけをコピー
+    const prevStateSnap = {
+        scoreA: state.scoreA, scoreB: state.scoreB,
+        setA: state.setA, setB: state.setB,
         servingTeam: state.servingTeam,
         playersA: [...state.playersA],
         playersB: [...state.playersB]
     };
 
-    // 3. 【最重要】サーブ権移動の判定とローテーション処理
-    // 得点したチーム(winner)が、直前にサーブを打っていたチーム(state.servingTeam)と異なる場合がサイドアウトです
     const isSideOut = (state.servingTeam !== winner);
 
     if (winner === 'A') {
         state.scoreA++;
-        if (isSideOut) {
-            state.servingTeam = 'A';
-            rotate('A'); // Aチームのローテーションを確実に実行
-        }
+        if (isSideOut) { state.servingTeam = 'A'; rotate('A'); }
     } else {
         state.scoreB++;
-        if (isSideOut) {
-            state.servingTeam = 'B';
-            rotate('B'); // Bチームのローテーションを確実に実行
-        }
+        if (isSideOut) { state.servingTeam = 'B'; rotate('B'); }
     }
 
-    // 4. 履歴（CSV用データ）への保存
     state.history.push({
-        time: new Date().toLocaleTimeString(),
         score: `${state.scoreA}-${state.scoreB}`,
         team: winner,
         reason: reason,
-        actor: actorName,
-        snap: prevState
+        actor: actorDisplay,
+        snap: prevStateSnap
     });
 
-    // 5. プレイヤーの選択状態をクリア
-    state.selectedPlayerA = null;
-    state.selectedPlayerB = null;
-
-    // 6. 画面を即座に更新（これでスコアと位置がパッと変わります）
+    state.selectedPlayersA = [];
+    state.selectedPlayersB = [];
     render();
 
-    // 7. セット終了判定は画面更新が終わった後に安全に実行
-    setTimeout(() => {
-        checkSetEnd();
-    }, 10);
+    setTimeout(checkSetEnd, 10);
 }
 
 function rotate(team) {
     const p = (team === 'A') ? state.playersA : state.playersB;
-    if (p.length > 0) {
-        p.unshift(p.pop());
+    if (p.length > 0) p.unshift(p.pop());
+}
+
+/**
+ * セット終了および試合終了（2セット先取）の判定
+ */
+function checkSetEnd() {
+    const a = state.scoreA;
+    const b = state.scoreB;
+    
+    // 現在の合計セット数から、このセットが何セット目か判定
+    // 0 or 1セット終了済みなら次は25点、2セット終了済み（ファイナルセット）なら15点
+    const isFinalSet = (state.setA + state.setB === 2);
+    const limit = isFinalSet ? 15 : 25;
+
+    // セット終了条件：上限点に達し、かつ2点差以上
+    if ((a >= limit || b >= limit) && Math.abs(a - b) >= 2) {
+        const setWinner = a > b ? 'A' : 'B';
+        alert(`TEAM ${setWinner} が第 ${state.setA + state.setB + 1} セットを獲得しました！`);
+        
+        // セット記録を保存
+        state.setRecords.push(`${a}-${b}`);
+        
+        // セットカウント更新
+        if (setWinner === 'A') state.setA++; 
+        else state.setB++;
+
+        // 試合終了判定（2セット先取）
+        if (state.setA === 2 || state.setB === 2) {
+            const matchWinner = state.setA === 2 ? 'A' : 'B';
+            alert(`試合終了！ 2セット先取により TEAM ${matchWinner} の勝利です！`);
+            
+            // 試合終了後は操作できないようにする
+            state.servingTeam = null; 
+            render();
+            return; // 処理終了
+        }
+
+        // 次のセットへ向けたリセット
+        state.scoreA = 0;
+        state.scoreB = 0;
+        state.servingTeam = null;
+        state.selectedPlayersA = [];
+        state.selectedPlayersB = [];
+
+        // サーブ権選択エリアを再表示
+        const selector = document.getElementById('serve-selector');
+        if (selector) selector.style.display = 'block';
+        
+        render();
     }
 }
 
-function resetGame() {
-    if(confirm("リセットしますか？")) {
-        state.scoreA = 0; state.scoreB = 0;
-        state.setA = 0; state.setB = 0;
-        state.setRecords = [];
-        state.servingTeam = null;
-        state.history = [];
-        document.getElementById('toss-area').classList.remove('hidden');
-        document.getElementById('active-indicators').classList.add('hidden');
+function undo() {
+    if (state.history.length === 0) return;
+    if (confirm("1点戻しますか？")) {
+        const last = state.history.pop();
+        const prev = last.snap;
+        state.scoreA = prev.scoreA;
+        state.scoreB = prev.scoreB;
+        state.setA = prev.setA;
+        state.setB = prev.setB;
+        state.servingTeam = prev.servingTeam;
+        state.playersA = [...prev.playersA];
+        state.playersB = [...prev.playersB];
+        
+        if (state.servingTeam === null) {
+            document.getElementById('serve-selector').style.display = 'block';
+        }
         render();
     }
 }
@@ -232,50 +264,25 @@ function exportCSV() {
     const setSummary = state.setRecords.length > 0 ? state.setRecords.join(' / ') : "なし";
 
     let csv = "\uFEFF"; 
-    csv += `対戦,${teamA} VS ${teamB}\n`;
-    csv += `最終セットスコア,${state.setA}-${state.setB}\n`;
-    csv += `各セット詳細,${setSummary}\n\n`;
-    csv += "セット,スコア,得点チーム,担当,理由\n";
+    csv += `対戦,${teamA} VS ${teamB}\n最終セットスコア,${state.setA}-${state.setB}\nセット履歴,${setSummary}\n\n`;
+    csv += "スコア,得点チーム,担当選手,理由\n";
 
     state.history.forEach(h => {
-        const setNum = (h.snap.setA + h.snap.setB + 1);
         const winnerName = (h.team === 'A') ? teamA : teamB;
-        csv += `第${setNum}セット,${h.score},${winnerName},${h.actor},${h.reason}\n`;
+        csv += `${h.score},${winnerName},${h.actor},${h.reason}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `試合結果_${teamA}_vs_${teamB}.csv`;
+    a.download = `結果_${teamA}_vs_${teamB}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
 
-function undo() {
-    if (state.history.length === 0) {
-        alert("戻れる履歴がありません");
-        return;
-    }
-
-    if (confirm("最後のアクションを取り消して、サーブ権と配置を戻しますか？")) {
-        const lastAction = state.history.pop();
-        const prev = lastAction.snap;
-
-        state.scoreA = prev.scoreA;
-        state.scoreB = prev.scoreB;
-        state.setA = prev.setA;
-        state.setB = prev.setB;
-        state.servingTeam = prev.servingTeam;
-        state.playersA = [...prev.playersA];
-        state.playersB = [...prev.playersB];
-
-        if (state.servingTeam === null) {
-            document.getElementById('toss-area').classList.remove('hidden');
-            document.getElementById('active-indicators').classList.add('hidden');
-        }
-        render();
-    }
+function resetGame() {
+    if(confirm("リセットしますか？")) location.reload();
 }
 
 init();
