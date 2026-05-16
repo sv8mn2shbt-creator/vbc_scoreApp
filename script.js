@@ -44,12 +44,7 @@ function setupNameInputs() {
     });
 }
 
-/**
- * 描画処理の最適化
- * innerHTMLを使いつつ、不要なイベントの重複を防ぐ
- */
 function render() {
-    // スコア表示
     document.getElementById('display-score-a').textContent = state.scoreA;
     document.getElementById('display-score-b').textContent = state.scoreB;
     document.getElementById('set-count-a').textContent = state.setA;
@@ -77,16 +72,13 @@ function render() {
     const isP2toP6SelectedA = state.selectedPlayersA.some(idx => idx !== 0);
     const isP2toP6SelectedB = state.selectedPlayersB.some(idx => idx !== 0);
 
-    // サーブ系ボタンの制御
     document.getElementById('btn-serve-win-a').disabled = !isAServing || isP2toP6SelectedA;
     document.getElementById('btn-serve-err-a').disabled = !isAServing || isP2toP6SelectedA;
     document.getElementById('btn-serve-win-b').disabled = !isBServing || isP2toP6SelectedB;
     document.getElementById('btn-serve-err-b').disabled = !isBServing || isP2toP6SelectedB;
 
-    const otherButtons = document.querySelectorAll('.button-section button:not([id*="serve"])');
-    otherButtons.forEach(btn => btn.disabled = !isStarted);
+    document.querySelectorAll('.button-section button:not([id*="serve"])').forEach(btn => btn.disabled = !isStarted);
 
-    // コート描画
     drawSide('a', state.playersA);
     drawSide('b', state.playersB);
 }
@@ -94,30 +86,19 @@ function render() {
 function drawSide(id, players) {
     const grid = document.getElementById(`grid-${id}`);
     if (!grid) return;
-    
-    // 軽量化：一度全ての要素を削除（GCを促す）
     while (grid.firstChild) { grid.removeChild(grid.firstChild); }
 
     let visualOrder = (id === 'a') ? [2, 3, 1, 4, 0, 5] : [5, 0, 4, 1, 3, 2];
     const selectedList = (id === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
-
-    // ドキュメントフラグメントを使用してDOM操作の負荷を軽減
     const fragment = document.createDocumentFragment();
 
     visualOrder.forEach((idx) => {
         const box = document.createElement('div');
         box.className = 'player-box';
-        
         if (selectedList.includes(idx)) box.classList.add('selected');
         if (state.servingTeam === id.toUpperCase() && idx === 0) box.classList.add('server-highlight');
-
-        // イベントリスナーの直接指定（メモリリーク防止）
         box.onclick = () => selectPlayer(id, idx);
-        
-        box.innerHTML = `
-            <span class="pos-tag">P${POS_LABELS[idx]}</span>
-            <div class="p-name-display">${players[idx]}</div>
-        `;
+        box.innerHTML = `<span class="pos-tag">P${POS_LABELS[idx]}</span><div class="p-name-display">${players[idx]}</div>`;
         fragment.appendChild(box);
     });
     grid.appendChild(fragment);
@@ -126,22 +107,15 @@ function drawSide(id, players) {
 function selectPlayer(team, idx) {
     let list = (team === 'a') ? state.selectedPlayersA : state.selectedPlayersB;
     const foundIdx = list.indexOf(idx);
-    if (foundIdx > -1) {
-        list.splice(foundIdx, 1);
-    } else {
-        list.push(idx);
-    }
+    if (foundIdx > -1) list.splice(foundIdx, 1);
+    else list.push(idx);
     render();
 }
 
 function addPoint(winner, reason) {
     if (!state.servingTeam) return;
 
-    // 1. 現在のサーバー（P1）を特定
-    // サーブ権を持っているチームのインデックス0の選手
     const currentServerName = state.servingTeam === 'A' ? state.playersA[0] : state.playersB[0];
-
-    // 2. 担当選手（アクションを起こした人）の判定
     let actorNames = [];
     const isLossButton = (reason.includes('ミス') && !reason.includes('相手'));
     const pressedTeam = isLossButton ? (winner === 'A' ? 'B' : 'A') : winner;
@@ -152,20 +126,12 @@ function addPoint(winner, reason) {
         actorNames = state.selectedPlayersB.length > 0 ? state.selectedPlayersB.map(idx => state.playersB[idx]) : (reason.includes('サーブ') ? [state.playersB[0]] : []);
     }
 
-    const actorDisplay = actorNames.length > 0 ? actorNames.join('/') : "-";
-
-    // 3. スナップショット作成
     const prevStateSnap = {
-        scoreA: state.scoreA, scoreB: state.scoreB,
-        setA: state.setA, setB: state.setB,
-        servingTeam: state.servingTeam,
-        playersA: [...state.playersA],
-        playersB: [...state.playersB]
+        scoreA: state.scoreA, scoreB: state.scoreB, setA: state.setA, setB: state.setB,
+        servingTeam: state.servingTeam, playersA: [...state.playersA], playersB: [...state.playersB]
     };
 
-    // 4. スコア更新とローテーション判定
     const isSideOut = (state.servingTeam !== winner);
-
     if (winner === 'A') {
         state.scoreA++;
         if (isSideOut) { state.servingTeam = 'A'; rotate('A'); }
@@ -174,20 +140,13 @@ function addPoint(winner, reason) {
         if (isSideOut) { state.servingTeam = 'B'; rotate('B'); }
     }
 
-    // 5. 履歴に「サーバー」情報を追加して保存
     state.history.push({
-        score: `${state.scoreA}-${state.scoreB}`,
-        team: winner,
-        reason: reason,
-        actor: actorDisplay,
-        server: currentServerName, // ここにサーバー名を記録
-        snap: prevStateSnap
+        score: `${state.scoreA}-${state.scoreB}`, team: winner, reason: reason,
+        actor: actorNames.length > 0 ? actorNames.join('/') : "-", server: currentServerName, snap: prevStateSnap
     });
 
-    state.selectedPlayersA = [];
-    state.selectedPlayersB = [];
+    state.selectedPlayersA = []; state.selectedPlayersB = [];
     render();
-
     setTimeout(checkSetEnd, 10);
 }
 
@@ -196,52 +155,23 @@ function rotate(team) {
     if (p.length > 0) p.unshift(p.pop());
 }
 
-/**
- * セット終了および試合終了（2セット先取）の判定
- */
 function checkSetEnd() {
-    const a = state.scoreA;
-    const b = state.scoreB;
-    
-    // 現在の合計セット数から、このセットが何セット目か判定
-    // 0 or 1セット終了済みなら次は25点、2セット終了済み（ファイナルセット）なら15点
-    const isFinalSet = (state.setA + state.setB === 2);
-    const limit = isFinalSet ? 15 : 25;
+    const a = state.scoreA; const b = state.scoreB;
+    const limit = (state.setA + state.setB === 2) ? 15 : 25;
 
-    // セット終了条件：上限点に達し、かつ2点差以上
     if ((a >= limit || b >= limit) && Math.abs(a - b) >= 2) {
         const setWinner = a > b ? 'A' : 'B';
-        alert(`TEAM ${setWinner} が第 ${state.setA + state.setB + 1} セットを獲得しました！`);
-        
-        // セット記録を保存
+        alert(`TEAM ${setWinner} が第 ${state.setA + state.setB + 1} セットを獲得！`);
         state.setRecords.push(`${a}-${b}`);
-        
-        // セットカウント更新
-        if (setWinner === 'A') state.setA++; 
-        else state.setB++;
+        if (setWinner === 'A') state.setA++; else state.setB++;
 
-        // 試合終了判定（2セット先取）
         if (state.setA === 2 || state.setB === 2) {
-            const matchWinner = state.setA === 2 ? 'A' : 'B';
-            alert(`試合終了！ 2セット先取により TEAM ${matchWinner} の勝利です！`);
-            
-            // 試合終了後は操作できないようにする
-            state.servingTeam = null; 
-            render();
-            return; // 処理終了
+            alert(`試合終了！ TEAM ${state.setA === 2 ? 'A' : 'B'} の勝利です！`);
+            state.servingTeam = null; render(); return;
         }
 
-        // 次のセットへ向けたリセット
-        state.scoreA = 0;
-        state.scoreB = 0;
-        state.servingTeam = null;
-        state.selectedPlayersA = [];
-        state.selectedPlayersB = [];
-
-        // サーブ権選択エリアを再表示
-        const selector = document.getElementById('serve-selector');
-        if (selector) selector.style.display = 'block';
-        
+        state.scoreA = 0; state.scoreB = 0; state.servingTeam = null;
+        document.getElementById('serve-selector').style.display = 'block';
         render();
     }
 }
@@ -251,17 +181,11 @@ function undo() {
     if (confirm("1点戻しますか？")) {
         const last = state.history.pop();
         const prev = last.snap;
-        state.scoreA = prev.scoreA;
-        state.scoreB = prev.scoreB;
-        state.setA = prev.setA;
-        state.setB = prev.setB;
+        state.scoreA = prev.scoreA; state.scoreB = prev.scoreB;
+        state.setA = prev.setA; state.setB = prev.setB;
         state.servingTeam = prev.servingTeam;
-        state.playersA = [...prev.playersA];
-        state.playersB = [...prev.playersB];
-        
-        if (state.servingTeam === null) {
-            document.getElementById('serve-selector').style.display = 'block';
-        }
+        state.playersA = [...prev.playersA]; state.playersB = [...prev.playersB];
+        if (state.servingTeam === null) document.getElementById('serve-selector').style.display = 'block';
         render();
     }
 }
@@ -269,31 +193,32 @@ function undo() {
 function exportCSV() {
     const teamA = document.getElementById('team-name-a').value || "Team A";
     const teamB = document.getElementById('team-name-b').value || "Team B";
-    const setSummary = state.setRecords.length > 0 ? state.setRecords.join(' / ') : "なし";
-
-    let csv = "\uFEFF"; 
-    csv += `対戦,${teamA} VS ${teamB}\n最終セットスコア,${state.setA}-${state.setB}\nセット履歴,${setSummary}\n\n`;
-    
-    // ヘッダーに「サーバー」を追加
-    csv += "スコア,得点チーム,サーバー,担当選手,理由\n";
-
+    let csv = "\uFEFFスコア,得点チーム,サーバー,担当選手,理由\n";
     state.history.forEach(h => {
-        const winnerName = (h.team === 'A') ? teamA : teamB;
-        // データ行にサーバー名を追加
-        csv += `${h.score},${winnerName},${h.server},${h.actor},${h.reason}\n`;
+        csv += `${h.score},${h.team === 'A' ? teamA : teamB},${h.server},${h.actor},${h.reason}\n`;
     });
-
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = URL.createObjectURL(blob);
     a.download = `結果_${teamA}_vs_${teamB}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
 }
 
-function resetGame() {
-    if(confirm("リセットしますか？")) location.reload();
+function saveData() {
+    localStorage.setItem('vb_score_state', JSON.stringify(state));
+    alert("保存しました");
 }
+
+function loadData() {
+    const saved = localStorage.getItem('vb_score_state');
+    if (saved) {
+        Object.assign(state, JSON.parse(saved));
+        if (state.servingTeam) document.getElementById('serve-selector').style.display = 'none';
+        render();
+        alert("読み込みました");
+    }
+}
+
+function resetGame() { if(confirm("リセットしますか？")) location.reload(); }
 
 init();

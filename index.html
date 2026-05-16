@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Volleyball Scoreboard</title>
     <link rel="stylesheet" href="style.css">
-    <!-- manifest.json の読み込み -->
     <link rel="manifest" href="./manifest.json">
-
-    <!-- sw.js (サービスワーカー) の登録スクリプト -->
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
@@ -20,37 +17,35 @@
 <body>
     <div id="app">
         <header>
-            <div class="score-container">
+            <div class="score-container" id="container-a">
                 <div class="team-info">
-                    <input type="text" id="team-name-a" class="team-name-input" value="Team A">
-                    <div class="set-count" id="set-count-a" style="font-size: 1.2rem; color: #ffeb3b;">0</div> <!-- 追加 -->
-                    <div class="score" id="display-score-a">0</div>
+                    <input type="text" id="team-name-a" class="team-name-input" value="TEAM A">
+                    <div id="indicatorA" class="indicator"></div> 
                 </div>
-                <div class="serve-center-area">
-                    <div id="indicatorA" class="indicator"></div>
-                    <div id="indicatorB" class="indicator"></div>
-                    <div id="serve-selector" class="serve-init-box">
-                        <p style="font-size: 10px; margin-bottom: 5px;">初サーブ権</p>
-                        <div style="display: flex; gap: 5px;">
-                            <button onclick="setInitialServer('A')" class="mini-btn">A</button>
-                            <button onclick="setInitialServer('B')" class="mini-btn">B</button>
-                        </div>
-                    </div>
-                </div>                
-                <!-- Team B側も同様に -->
-                <div class="team-info">
-                    <div class="score" id="display-score-b">0</div>
-                    <div class="set-count" id="set-count-b" style="font-size: 1.2rem; color: #ffeb3b;">0</div> <!-- 追加 -->
-                    <input type="text" id="team-name-b" class="team-name-input" value="Team B">
+                <div class="score">
+                    <span id="display-score-a">0</span>
+                    <span class="set-count">(<span id="set-count-a">0</span>)</span>
                 </div>
             </div>
-            <details class="player-settings">
-            <summary>選手名を設定する</summary>
-            <div class="settings-grid">
-                <div class="team-settings">
-                    <h4>TEAM A</h4>
-                    <div id="inputs-a" class="inputs-container"></div>
+
+            <div class="score-container" id="container-b">
+                <div class="team-info">
+                    <input type="text" id="team-name-b" class="team-name-input" value="TEAM B">
+                    <div id="indicatorB" class="indicator"></div>
                 </div>
+                <div class="score">
+                    <span id="display-score-b">0</span>
+                    <span class="set-count">(<span id="set-count-b">0</span>)</span>
+                </div>
+            </div>
+
+            <details class="player-settings">
+                <summary>選手名を設定する</summary>
+                <div class="settings-grid">
+                    <div class="team-settings">
+                        <h4>TEAM A</h4>
+                        <div id="inputs-a" class="inputs-container"></div>
+                    </div>
                     <div class="team-settings">
                         <h4>TEAM B</h4>
                         <div id="inputs-b" class="inputs-container"></div>
@@ -60,6 +55,11 @@
         </header>
 
         <main class="court-viewport">
+            <div id="serve-selector" class="serve-init-overlay">
+                <p>最初のサーバーを選択してください</p>
+                <button onclick="setInitialServer('A')">TEAM A</button>
+                <button onclick="setInitialServer('B')">TEAM B</button>
+            </div>
             <div class="court-grid">
                 <div class="side side-a">
                     <div class="player-layout" id="grid-a"></div>
@@ -75,8 +75,7 @@
             <div class="control-panel">
                 <div class="team-controls team-a-ui">
                     <div class="ui-label">TEAM A</div>
-                    <div id="selected-player-display-a" class="selected-name" style="color: #ffeb3b; font-size: 0.8rem; text-align: center; height: 1.2rem;">選択: なし
-                    </div>
+                    <div id="selected-player-display-a" class="selected-name">選択: なし</div>
                     <div class="button-section win-section">
                         <button onclick="addPoint('A', 'スパイク')">スパイク</button>
                         <button id="btn-serve-win-a" onclick="addPoint('A', 'サーブ')">サーブ</button>
@@ -91,8 +90,7 @@
 
                 <div class="team-controls team-b-ui">
                     <div class="ui-label">TEAM B</div>
-                    <div id="selected-player-display-b" class="selected-name" style="color: #ffeb3b; font-size: 0.8rem; text-align: center; height: 1.2rem;">選択: なし
-                    </div>
+                    <div id="selected-player-display-b" class="selected-name">選択: なし</div>
                     <div class="button-section win-section">
                         <button onclick="addPoint('B', 'スパイク')">スパイク</button>
                         <button id="btn-serve-win-b" onclick="addPoint('B', 'サーブ')">サーブ</button>
@@ -105,9 +103,8 @@
                     </div>
                 </div>
             </div>
-           <!-- <footer> 内の <div class="system-bar"> の中に追加 -->
             <div class="system-bar">
-                <button onclick="undo()" style="background:#5d4037">1点戻る</button> <!-- 追加 -->
+                <button onclick="undo()" style="background:#5d4037">1点戻る</button>
                 <button onclick="saveData()">保存</button>
                 <button onclick="loadData()">読込</button>
                 <button onclick="resetGame()" style="background:#827717">リセット</button>
