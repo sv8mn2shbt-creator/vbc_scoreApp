@@ -1,5 +1,4 @@
-const CACHE_NAME = 'vball-score-v1';
-// スマホに保存（キャッシュ）するファイルの一覧
+const CACHE_NAME = 'vb-score-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -8,12 +7,15 @@ const ASSETS = [
   './manifest.json'
 ];
 
-// インストール時にファイルをキャッシュに保存
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    }).then(() => self.skipWaiting())
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((res) => res || fetch(event.request))
   );
 });
 
@@ -29,14 +31,5 @@ self.addEventListener('activate', (e) => {
         })
       );
     }).then(() => self.clients.claim())
-  );
-});
-
-// ネットワークが無くてもキャッシュからファイルを返す（オフライン対応）
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
   );
 });

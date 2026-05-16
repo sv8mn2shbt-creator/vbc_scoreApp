@@ -1,15 +1,13 @@
 {
-  "name": "バレーボール スコア＆ローテーションレコーダー",
-  "short_name": "バレースコア",
-  "description": "オフラインでも動作するバレーボールデータ記録ツール",
-  "start_url": "./index.html",
+  "name": "Volleyball Scoreboard Pro",
+  "short_name": "VB Score",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#121212",
-  "theme_color": "#121212",
-  "orientation": "landscape",
+  "theme_color": "#2e7d32",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3076/3076814.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/889/889500.png",
       "sizes": "512x512",
       "type": "image/png"
     }
