@@ -183,42 +183,59 @@ footer {
 }
 
 /* ----------------------------------
-   スマホ横向き（Landscape）専用：スクロールなし調整
+   スマホ横向き（Landscape）専用：名前入力とボタンの復元
 ---------------------------------- */
 @media (orientation: landscape) and (max-height: 500px) {
     #app {
         flex-direction: row;
-        overflow: hidden; /* 全体を固定 */
+        overflow: hidden;
     }
 
-    /* 左側：スコアと情報（幅を少し狭める） */
+    /* 左側：スコア ＋ 名前入力欄（スクロール可能にする） */
     header {
-        width: 20%;
+        width: 25%;
         height: 100vh;
         border-right: 1px solid #444;
         border-bottom: none;
         padding: 5px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        gap: 5px;
+        overflow-y: auto; /* 名前入力が多い場合にスクロール可能に */
     }
     
-    .score-container { flex-direction: column; gap: 5px; }
-    .team-info { flex-direction: column; align-items: center; }
-    .score { font-size: 1.2rem; line-height: 1; }
-    .team-name-input { width: 90%; font-size: 0.7rem; }
-    .indicator { width: 10px; height: 10px; margin: 2px auto; }
-
-    /* 中央：コート（比率を上げる） */
-    .court-viewport {
-        width: 45%;
-        height: 100vh;
-        padding: 5px;
+    .score-container { 
+        flex-direction: row; 
+        justify-content: center; 
+        gap: 10px; 
+        margin-bottom: 5px;
     }
-    .court-grid { height: 95%; max-height: 100vh; }
+    .score { font-size: 1.2rem; }
 
-    /* 右側：操作パネル（ここを徹底圧縮） */
+    /* 名前入力欄を横向きでも見やすく調整 */
+    .player-settings { display: block; width: 100%; }
+    .settings-grid { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 2px; 
+        max-height: none; 
+    }
+    .team-name-input { width: 90%; font-size: 0.7rem; margin-bottom: 4px; }
+    .name-edit-input { 
+        width: 90%; 
+        font-size: 0.65rem; 
+        padding: 2px; 
+        height: 18px; 
+    }
+
+    /* 中央：コート */
+    .court-viewport {
+        width: 40%;
+        height: 100vh;
+        padding: 2px;
+    }
+    .court-grid { height: 98%; }
+
+    /* 右側：操作パネル（得点ボタン ＋ システムボタン） */
     footer {
         width: 35%;
         height: 100vh;
@@ -227,53 +244,46 @@ footer {
         padding: 2px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between; /* 上下に振り分け */
     }
 
+    /* 得失点ボタンエリア */
     .control-panel {
+        flex: 1; /* 余ったスペースを埋める */
+        display: flex;
         flex-direction: column;
-        gap: 2px;
-        flex: 1;
         justify-content: center;
+        gap: 2px;
     }
 
-    .team-controls { gap: 2px; }
-    .ui-label { font-size: 0.5rem; margin: 0; }
-
-    /* ボタンセクションを3列にして高さを圧縮 */
     .button-section {
         display: grid;
         grid-template-columns: repeat(3, 1fr); 
         gap: 3px;
-        margin-bottom: 4px;
     }
 
     .button-section button {
-        min-height: 32px; /* 限界まで低く */
+        min-height: 35px; /* 押しやすさを維持しつつ低く */
         font-size: 0.7rem;
-        padding: 2px;
-        box-shadow: none; /* 立体感を消してフラットに */
-        border-radius: 2px;
     }
 
-    /* システムボタンを最下部に1列で並べる */
+    /* 1点戻る・CSVなどのシステムボタン（ここを見えるように調整） */
     .system-bar {
-        grid-template-columns: repeat(5, 1fr);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 2列から3列に変更して高さを節約 */
         gap: 2px;
-        padding: 2px 0;
+        padding: 2px;
+        background: #000;
+        border-top: 1px solid #333;
     }
 
     .system-bar button {
-        padding: 5px 0;
+        padding: 4px 0;
         font-size: 0.6rem;
-        min-height: 25px;
+        min-height: 28px;
+        background: #444;
     }
 
-    /* 選択中の選手名表示を非表示にするか、極小にする（スペース確保） */
-    #selected-player-display-a, 
-    #selected-player-display-b {
-        font-size: 0.5rem;
-        line-height: 1;
-        margin: 0;
-    }
+    /* 選択中の選手表示を極小化 */
+    .selected-name { font-size: 0.5rem; margin: 0; }
+    .ui-label { display: none; } /* 「得点」「失点」のラベルを消してスペース確保 */
 }
