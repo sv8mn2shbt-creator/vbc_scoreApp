@@ -137,6 +137,11 @@ function selectPlayer(team, idx) {
 function addPoint(winner, reason) {
     if (!state.servingTeam) return;
 
+    // 1. 現在のサーバー（P1）を特定
+    // サーブ権を持っているチームのインデックス0の選手
+    const currentServerName = state.servingTeam === 'A' ? state.playersA[0] : state.playersB[0];
+
+    // 2. 担当選手（アクションを起こした人）の判定
     let actorNames = [];
     const isLossButton = (reason.includes('ミス') && !reason.includes('相手'));
     const pressedTeam = isLossButton ? (winner === 'A' ? 'B' : 'A') : winner;
@@ -149,7 +154,7 @@ function addPoint(winner, reason) {
 
     const actorDisplay = actorNames.length > 0 ? actorNames.join('/') : "-";
 
-    // 【軽量化】重いJSON.stringifyを避け、必要な値だけをコピー
+    // 3. スナップショット作成
     const prevStateSnap = {
         scoreA: state.scoreA, scoreB: state.scoreB,
         setA: state.setA, setB: state.setB,
@@ -158,6 +163,7 @@ function addPoint(winner, reason) {
         playersB: [...state.playersB]
     };
 
+    // 4. スコア更新とローテーション判定
     const isSideOut = (state.servingTeam !== winner);
 
     if (winner === 'A') {
@@ -168,11 +174,13 @@ function addPoint(winner, reason) {
         if (isSideOut) { state.servingTeam = 'B'; rotate('B'); }
     }
 
+    // 5. 履歴に「サーバー」情報を追加して保存
     state.history.push({
         score: `${state.scoreA}-${state.scoreB}`,
         team: winner,
         reason: reason,
         actor: actorDisplay,
+        server: currentServerName, // ここにサーバー名を記録
         snap: prevStateSnap
     });
 
@@ -265,11 +273,14 @@ function exportCSV() {
 
     let csv = "\uFEFF"; 
     csv += `対戦,${teamA} VS ${teamB}\n最終セットスコア,${state.setA}-${state.setB}\nセット履歴,${setSummary}\n\n`;
-    csv += "スコア,得点チーム,担当選手,理由\n";
+    
+    // ヘッダーに「サーバー」を追加
+    csv += "スコア,得点チーム,サーバー,担当選手,理由\n";
 
     state.history.forEach(h => {
         const winnerName = (h.team === 'A') ? teamA : teamB;
-        csv += `${h.score},${winnerName},${h.actor},${h.reason}\n`;
+        // データ行にサーバー名を追加
+        csv += `${h.score},${winnerName},${h.server},${h.actor},${h.reason}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
