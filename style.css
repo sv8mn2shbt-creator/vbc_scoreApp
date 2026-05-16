@@ -9,100 +9,175 @@
 
 body {
     margin: 0; padding: 0; font-family: sans-serif;
-    background: #121212; color: white; height: 100vh; overflow: hidden;
+    background: #121212; color: white; height: 100vh; 
+    display: flex; flex-direction: column; overflow: hidden;
 }
 
-#app { display: flex; flex-direction: column; height: 100%; }
+#app { display: flex; flex-direction: column; height: 100%; width: 100%; }
 
-header { background: #222; padding: 1vh 2vw; border-bottom: 1px solid #444; }
+/* ヘッダーをさらにコンパクトに */
+header { 
+    background: #222; 
+    padding: 4px 10px; 
+    border-bottom: 1px solid #444;
+    flex-shrink: 0; 
+}
 .score-container { display: flex; justify-content: space-between; align-items: center; }
-.team-info { display: flex; align-items: center; gap: 10px; }
-.team-name-input { width: 15vw; font-size: 1rem; background: #333; border: 1px solid #444; color: white; padding: 5px; }
-.score { font-size: 2.5rem; font-weight: bold; min-width: 50px; text-align: center; }
+.team-info { display: flex; align-items: center; gap: 6px; }
+.team-name-input { width: 18vw; font-size: 0.8rem; background: #333; border: 1px solid #444; color: white; padding: 2px; }
+.score { font-size: 1.8rem; font-weight: bold; min-width: 40px; text-align: center; }
+.set-count { font-size: 1rem !important; }
 
-/* 中央エリア：横並びに修正 */
-.serve-center-area {
-    display: flex;
-    flex-direction: row; 
-    align-items: center;
-    justify-content: center;
-    min-width: 100px;
-    gap: 10px;
+/* 選手設定エリアの高さ制限 */
+.player-settings { font-size: 0.8rem; }
+.settings-grid { display: flex; gap: 10px; padding: 5px; max-height: 15vh; overflow-y: auto; }
+
+/* コートエリアの比率を調整 */
+.court-viewport { 
+    flex: 1; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    padding: 2px;
+    min-height: 0; /* flexアイテムの潰れ防止 */
+}
+.court-grid { 
+    display: flex; 
+    width: 98%; 
+    height: 95%; 
+    max-height: 40vh; /* スマホでボタンを確保するため高さを制限 */
 }
 
-.indicator {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #333;
-    border: 2px solid #555;
-    transition: all 0.3s;
+.side { flex: 1; background: var(--court-color); border: 1px solid var(--line-color); display: flex; padding: 4px; }
+.net-line { width: 4px; background: var(--net-color); z-index: 10; }
+
+.player-layout { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    grid-template-rows: repeat(3, 1fr); 
+    gap: 4px; 
+    width: 100%; 
 }
 
-/* 点灯時の色を確実に反映 */
-.indicator.active {
-    background: #ffeb3b !important;
-    border-color: #fff;
-    box-shadow: 0 0 15px #ffeb3b;
-}
-
-.serve-init-box {
-    background: #444;
-    padding: 5px 10px;
-    border-radius: 10px;
-    text-align: center;
-}
-
-.mini-btn { padding: 4px 12px; background: #666; border: 1px solid #888; color: white; border-radius: 4px; }
-
-.court-viewport { flex: 1; display: flex; justify-content: center; align-items: center; padding: 5px; }
-.court-grid { display: flex; width: 98%; height: 90%; max-width: 1200px; }
-.side { flex: 1; background: var(--court-color); border: 2px solid var(--line-color); display: flex; padding: 1%; }
-.net-line { width: 6px; background: var(--net-color); z-index: 10; }
-
-.player-layout { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1.5%; width: 100%; }
-
-/* 選手ボックスと選択時の色修正 */
 .player-box { 
     background: rgba(255, 255, 255, 0.9); 
     color: black; 
-    border-radius: 4px; 
+    border-radius: 3px; 
     display: flex; 
     flex-direction: column; 
-    justify-content: center; 
+    justify-content: center; /* 名前を中央に配置 */
     align-items: center; 
-    position: relative; 
-    border: 3px solid transparent; 
-    transition: background 0.2s;
+    position: relative; /* 子要素（pos-tag）の基準点になる */
+    border: 2px solid transparent;
+    font-size: 0.7rem;
+    min-height: 45px; /* 高さが潰れすぎないように最低値を確保 */
 }
 
-.player-box.selected {
-    background: #ffeb3b !important; /* 黄色に固定 */
-    border-color: #f57f17 !important;
-    z-index: 5;
+.pos-tag { 
+    font-size: 0.6rem; 
+    font-weight: bold;
+    color: #555; 
+    position: absolute; /* 親要素に対して絶対配置 */
+    top: 2px;    /* 上からの距離 */
+    left: 4px;   /* 左からの距離 */
+    line-height: 1;
+    pointer-events: none; /* テキスト選択などを邪魔しないように */
 }
 
-.player-box.server-highlight { border-color: #ffeb3b; background: white; box-shadow: inset 0 0 10px rgba(255, 235, 59, 0.5); }
-.pos-tag { font-size: 0.6rem; position: absolute; top: 2px; left: 4px; color: #666; }
-.p-name-display { font-weight: bold; font-size: 0.85rem; text-align: center; }
+.player-box.selected { background: #ffeb3b !important; border-color: #f57f17 !important; }
+.player-box.server-highlight { border-color: #ffeb3b; background: white; }
+.p-name-display { 
+    font-weight: bold; 
+    margin-top: 4px; /* ポジション表示との重なりを避けるための微調整 */
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    width: 90%; 
+    text-align: center; 
+}
 
-/* フッター・ボタン周り（変更なし） */
-.control-panel { display: flex; background: #000; padding: 5px; gap: 5px; border-top: 2px solid #444; }
-.team-controls { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 5px; }
-.button-section { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 5px; }
-.button-section button { flex: 1 1 calc(33.333% - 8px); min-width: 70px; padding: 12px 5px; font-size: 0.8rem; font-weight: bold; border: none; border-radius: 6px; color: white; }
+/* フッター（ボタンエリア）を画面下部に固定 */
+footer {
+    background: #1a1a1a;
+    border-top: 2px solid #444;
+    padding: 8px 4px; /* 全体に少し余白を持たせる */
+    flex-shrink: 0;
+}
+
+/* ボタンセクションのグリッド調整 */
+.button-section {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3列に固定 */
+    gap: 8px; /* ボタン同士の隙間を広げて誤タップ防止 */
+    margin-bottom: 10px;
+}
+
+/* 得点・失点ボタンを大きく */
 .button-section button {
-    transition: background-color 0.3s, opacity 0.3s, color 0.3s;
+    min-height: 55px; /* 高さをしっかり出す（親指で押しやすいサイズ） */
+    font-size: 0.95rem; /* 文字を大きく */
+    font-weight: 900;
+    border: none;
+    border-radius: 8px; /* 角を少し丸めてタップ領域を意識しやすく */
+    color: white;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3); /* 立体感を出して「ボタン」であることを強調 */
+    transition: transform 0.1s, filter 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    padding: 4px;
 }
-button:disabled {
-    background-color: #444 !important; /* 暗い灰色 */
-    color: #888 !important;            /* 文字を薄く */
-    border: 1px solid #333 !important;
-    cursor: not-allowed;               /* カーソルを禁止マークに */
-    opacity: 0.6;                      /* 少し透けさせる */
-    box-shadow: none !important;       /* 光沢などを消す */
+
+/* タップ時のフィードバック */
+.button-section button:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
 }
-.win-section button { background: #2e7d32; }
-.loss-section button { background: #c62828; }
-.system-bar { display: flex; justify-content: space-around; padding: 8px; background: #000; gap: 5px; }
-.system-bar button { background: #333; color: #ccc; flex: 1; font-size: 0.7rem; }
+
+/* 色のコントラストを強める */
+.win-section button {
+    background: #388e3c !important; /* 少し明るい緑 */
+}
+
+.loss-section button {
+    background: #d32f2f !important; /* 少し明るい赤 */
+}
+
+/* システムバー（下部メニュー）の調整 */
+.system-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+}
+
+.system-bar button {
+    background: #424242;
+    color: #eee;
+    font-size: 0.7rem;
+    padding: 12px 0; /* システムボタンも高さを出す */
+    border: none;
+    border-radius: 4px;
+}
+
+/* 選手選択名の表示を少し目立たせる */
+.selected-name {
+    background: #000;
+    margin-bottom: 4px;
+    padding: 2px 0;
+    border-radius: 4px;
+    border: 1px solid #333;
+    font-weight: bold;
+}
+
+/* ----------------------------------
+   スマホ縦向き時のコート高さ自動調整
+---------------------------------- */
+@media (max-height: 750px) {
+    .court-grid {
+        max-height: 35vh; /* 画面が小さい時はさらにコートを縮めてボタンを優先 */
+    }
+    .button-section button {
+        min-height: 50px;
+    }
+}
